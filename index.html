@@ -2,544 +2,2048 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cosmic Defender</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>ALCHEMIA · PHYSICA — медитативная песочница стихий</title>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{background:#000;display:grid;place-items:center;height:100vh;overflow:hidden;font-family:'Courier New',monospace}
-  canvas{background:#000;border:2px solid #0ff;box-shadow:0 0 30px #0ff}
-  #ui{position:absolute;top:20px;left:50%;transform:translateX(-50%);color:#0ff;font-size:18px;text-shadow:0 0 10px #0ff;pointer-events:none}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#080b14;--pnl:rgba(255,255,255,.045);--line:rgba(255,255,255,.09);--tx:#dfe6f5;--dim:#8d97b0;--acc:#ffd79a;--acc2:#7fe3d0}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+#app{height:100dvh;height:100vh;display:grid;grid-template-rows:auto 1fr auto}
+header{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.04),transparent)}
+header h1{margin:0;font-size:14px;font-weight:600;letter-spacing:.22em;color:var(--acc);white-space:nowrap}
+header .sub{color:var(--dim);font-size:11px;letter-spacing:.06em}
+header .sp{flex:1}
+main{display:grid;grid-template-columns:1fr 320px;min-height:0}
+#stage{position:relative;display:flex;align-items:center;justify-content:center;padding:10px;min-width:0;min-height:0}
+#wrap{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+#box{position:relative;max-width:100%;max-height:100%;border-radius:12px;overflow:hidden;box-shadow:0 0 0 1px var(--line),0 20px 60px rgba(0,0,0,.6)}
+canvas{display:block;width:100%;height:100%;image-rendering:pixelated;touch-action:none;cursor:crosshair}
+#cur{position:absolute;border:1px solid rgba(255,255,255,.55);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);opacity:.8;mix-blend-mode:screen}
+#hud{position:absolute;left:10px;top:10px;font:11px/1.5 ui-monospace,monospace;color:#9fb0d0;background:rgba(6,9,18,.5);padding:5px 8px;border-radius:8px;pointer-events:none;white-space:pre}
+#toast{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none}
+.tst{background:rgba(10,14,26,.86);border:1px solid var(--line);color:var(--acc);padding:7px 14px;border-radius:999px;font-size:13px;animation:pop .35s ease, fade .5s ease 2.6s forwards;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.96)}}
+@keyframes fade{to{opacity:0;transform:translateY(-6px)}}
+aside{border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0;background:rgba(255,255,255,.02)}
+.altar{padding:10px;border-bottom:1px solid var(--line)}
+.slots{display:flex;align-items:center;gap:6px}
+.slot{flex:1;min-height:52px;border:1px dashed var(--line);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px;background:rgba(255,255,255,.03);cursor:pointer;transition:.2s}
+.slot.f{border-style:solid;border-color:rgba(255,215,154,.45);background:rgba(255,215,154,.07)}
+.slot.res{border-color:rgba(127,227,208,.4);background:rgba(127,227,208,.07)}
+.slot b{font-size:19px;line-height:1}
+.slot span{font-size:10px;color:var(--dim);text-align:center}
+.op{color:var(--dim);font-size:16px}
+.arow{display:flex;gap:6px;margin-top:8px}
+.srch{padding:8px 10px;border-bottom:1px solid var(--line);display:flex;gap:6px}
+input[type=text]{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--tx);border-radius:8px;padding:6px 9px;font-size:13px;outline:none}
+input[type=text]:focus{border-color:rgba(255,215,154,.4)}
+#pal{overflow-y:auto;padding:6px 10px 16px;flex:1;scrollbar-width:thin}
+.gh{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:12px 0 6px}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:5px}
+.chip{position:relative;border:1px solid var(--line);border-radius:9px;padding:6px 4px 5px;text-align:center;background:rgba(255,255,255,.03);cursor:pointer;transition:.15s;user-select:none}
+.chip:hover{background:rgba(255,255,255,.08);transform:translateY(-1px)}
+.chip.on{border-color:var(--acc);background:rgba(255,215,154,.12)}
+.chip.idea{opacity:.85}
+.chip.lock{opacity:.28;cursor:default}
+.chip b{display:block;font-size:17px;line-height:1.15}
+.chip i{display:block;font-style:normal;font-size:10px;color:#c3cde4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip u{position:absolute;right:2px;top:2px;text-decoration:none;font-size:10px;opacity:.5;padding:1px 3px;border-radius:5px}
+.chip u:hover{opacity:1;background:rgba(255,255,255,.12)}
+footer{border-top:1px solid var(--line);padding:7px 10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:rgba(255,255,255,.02)}
+button{background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--tx);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;transition:.15s;font-family:inherit}
+button:hover{background:rgba(255,255,255,.11)}
+button.on{border-color:var(--acc);color:var(--acc);background:rgba(255,215,154,.12)}
+button.mini{padding:4px 8px;font-size:11px}
+.grp{display:flex;gap:4px;align-items:center;padding:3px 6px;border:1px solid var(--line);border-radius:9px}
+.grp label{font-size:10px;color:var(--dim);letter-spacing:.05em}
+input[type=range]{width:76px;accent-color:var(--acc)}
+.sep{width:1px;height:22px;background:var(--line)}
+#modal{position:fixed;inset:0;background:rgba(4,6,12,.82);backdrop-filter:blur(6px);display:none;z-index:50}
+#modal.open{display:flex;align-items:center;justify-content:center;padding:16px}
+.sheet{width:min(940px,100%);max-height:88dvh;max-height:88vh;background:#0b0f1c;border:1px solid var(--line);border-radius:16px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.7)}
+.tabs{display:flex;gap:4px;padding:10px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.body{overflow-y:auto;padding:14px 16px 22px}
+.card{border:1px solid var(--line);border-radius:11px;padding:9px 11px;margin-bottom:7px;background:rgba(255,255,255,.025)}
+.card h4{margin:0 0 4px;font-size:13px;font-weight:600}
+.card p{margin:2px 0;font-size:12px;color:#b9c3da}
+.mono{font:12px/1.5 ui-monospace,SFMono-Regular,monospace;color:var(--acc2)}
+.dim{color:var(--dim)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:7px}
+a{color:var(--acc)}
+.prog{height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-top:8px}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--acc2),var(--acc));transition:width .5s}
+@media(max-width:860px){main{grid-template-columns:1fr;grid-template-rows:1fr auto}aside{border-left:0;border-top:1px solid var(--line);max-height:42dvh;max-height:42vh}aside.hide{display:none}header h1{font-size:12px;letter-spacing:.14em}header .sub{display:none}}
 </style>
 </head>
 <body>
-<div id="ui">
-  <div id="score">СЧЁТ: 0</div>
-  <div id="lives">♥♥♥</div>
-  <div id="wave" style="color:#f0f;text-shadow:0 0 10px #f0f">ВОЛНА 1</div>
+<div id="app">
+  <header>
+    <h1>ALCHEMIA · PHYSICA</h1><span class="sub">песочница стихий и законов</span>
+    <span class="sp"></span>
+    <button id="bBook" class="mini">📖 Книга</button>
+    <button id="bLaws" class="mini">⚖ Законы</button>
+    <button id="bAbout" class="mini">✉ О проекте</button>
+    <button id="bSide" class="mini">☰</button>
+  </header>
+  <main>
+    <section id="stage"><div id="wrap"><div id="box"><canvas id="cv"></canvas><div id="cur"></div></div></div>
+      <div id="hud"></div><div id="toast"></div>
+    </section>
+    <aside id="side">
+      <div class="altar">
+        <div class="slots">
+          <div class="slot" id="sA"><b>+</b><span>элемент</span></div><div class="op">+</div>
+          <div class="slot" id="sB"><b>+</b><span>элемент</span></div><div class="op">=</div>
+          <div class="slot res" id="sR"><b>?</b><span>итог</span></div>
+        </div>
+        <div class="arow">
+          <button id="bClr" class="mini">Очистить</button>
+          <button id="bHint" class="mini">Подсказка</button>
+          <button id="bAll" class="mini">Показать все</button>
+        </div>
+        <div class="prog"><i id="pg" style="width:1%"></i></div>
+        <div class="dim" style="font-size:11px;margin-top:5px" id="cnt"></div>
+      </div>
+      <div class="srch"><input type="text" id="q" placeholder="поиск элемента…"></div>
+      <div id="pal"></div>
+    </aside>
+  </main>
+  <footer>
+    <div class="grp" id="tools"></div>
+    <div class="grp"><label>КИСТЬ</label><input type="range" id="rBrush" min="1" max="16" value="4"><span class="dim" id="vBrush" style="font-size:11px">4</span></div>
+    <div class="grp"><label>g</label><input type="range" id="rG" min="0" max="30" value="10"><span class="dim" id="vG" style="font-size:11px">1.0</span></div>
+    <div class="grp"><label>T° среды</label><input type="range" id="rT" min="-60" max="120" value="20"><span class="dim" id="vT" style="font-size:11px">20</span></div>
+    <div class="grp"><label>ВЕТЕР</label><input type="range" id="rW" min="-10" max="10" value="0"><span class="dim" id="vW" style="font-size:11px">0</span></div>
+    <div class="grp"><label>ВРЕМЯ</label><input type="range" id="rS" min="1" max="30" value="10"><span class="dim" id="vS" style="font-size:11px">1.0</span></div>
+    <span class="sep"></span>
+    <button id="bPause" class="mini">⏸ Пауза</button>
+    <button id="bTherm" class="mini">🌡 Тепловизор</button>
+    <button id="bSnd" class="mini">🔇 Звук</button>
+    <select id="selScene" style="background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--tx);border-radius:8px;padding:6px;font-size:12px">
+      <option value="">Сцены…</option><option value="empty">Пустота</option><option value="lake">Озеро</option><option value="volcano">Вулкан</option><option value="garden">Сад</option><option value="space">Космос</option><option value="storm">Шторм</option>
+    </select>
+    <select id="selQ" style="background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--tx);border-radius:8px;padding:6px;font-size:12px">
+      <option value="0">Сетка 256×144</option><option value="1" selected>Сетка 352×208</option><option value="2">Сетка 448×256</option>
+    </select>
+    <button id="bSave" class="mini">💾 Мир</button>
+    <button id="bLoad" class="mini">📂 Загрузить</button>
+    <button id="bReset" class="mini">↺ Прогресс</button>
+  </footer>
 </div>
-<canvas id="game" width="800" height="600"></canvas>
+<div id="modal"><div class="sheet"><div class="tabs">
+  <button data-tab="el" class="on">Элементы</button><button data-tab="rx">Рецепты</button><button data-tab="law">Законы физики</button><button data-tab="about">О проекте</button>
+  <span style="flex:1"></span><button id="bClose">✕ Закрыть</button>
+</div><div class="body" id="mbody"></div></div></div>
 
 <script>
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height;
+'use strict';
+/* ============================================================
+   1. ДАННЫЕ: 308 элементов, 598 рецептов (жёстко прописано)
+   формат: id|Имя|emoji|фаза|цвет|свойства
+   фазы: S твёрдое-структура, R твёрдое тело, P порошок,
+         L жидкость, G газ, F огонь/плазма, X особое, A идея
+   свойства: rho кг/м³, k Вт/(м·К), cp кДж/(кг·К), tm/tb °C,
+   melt/frz/boil/cnd — во что переходит, ign T воспламенения,
+   fuel теплота сгорания, burn остаток, ec электропроводность,
+   visc вязкость, life время жизни (шаги), glow свет, ang откос,
+   sol растворимость, acid кислота, mag магнитность, rad распад,
+   expl взрыв, t0 стартовая T, sp скрипт поведения
+   ============================================================ */
+const EDATA=`#b Стихии и первосущности
+wa|Вода|💧|L|3b82f6|rho=1000;k=0.6;cp=4.18;tm=0;tb=100;frz=ic;boil=st;ec=0.02;visc=1
+ea|Земля|🟫|P|6b4a2f|rho=1500;k=0.3;cp=0.9;ang=0.6
+fi|Огонь|🔥|F|ff7a18|life=90;glow=230;t0=1300
+ai|Воздух|🌬|G|9fd8ef|rho=1.2;k=0.026;cp=1.0;life=150
+en|Энергия|⚡|A|ffd166|
+heat|Тепло|♨|A|ff8f5e|
+cold|Холод|❄|A|8ecae6|
+press|Давление|🗜|A|b8c0ff|
+light|Свет|✨|X|fff3b0|rho=0.001;glow=255;life=12;sp=photon
+vac|Вакуум|🕳|X|101018|rho=0;k=0
+#n Вещества и состояния
+st|Пар|♨|G|cfe8f5|rho=0.6;k=0.025;cp=2.0;tb=100;cnd=wa;life=1200;t0=110
+ic|Лёд|🧊|R|a8e4ff|rho=917;k=2.2;cp=2.1;tm=0;melt=wa
+sn|Снег|❄|P|eaf6ff|rho=300;k=0.12;cp=2.1;tm=0;melt=wa;ang=0.9
+mu|Грязь|🟤|P|5a4632|rho=1700;k=0.5;cp=1.5;ang=0.85
+sa|Песок|🏖|P|e0c068|rho=1600;k=0.25;cp=0.8;tm=1700;melt=gl;ang=0.35
+cl|Глина|🧱|P|a86b4c|rho=1800;k=0.6;cp=0.9;tm=1100;melt=brick;ang=0.9
+ro|Камень|🪨|R|8a8a92|rho=2600;k=1.5;cp=0.8;tm=1200;melt=la
+la|Лава|🌋|L|ff5a2d|rho=2700;k=1.2;cp=1.0;tm=700;frz=ro;visc=6;glow=190;t0=1200
+ob|Обсидиан|🖤|R|2b2340|rho=2400;k=1.0;cp=0.8;tm=1300;melt=la
+ah|Пепел|🌫|P|6e6a66|rho=500;k=0.1;cp=0.8;ang=0.5
+du|Пыль|💨|P|b9a98c|rho=700;k=0.1;cp=0.8;ang=0.4
+sm|Дым|🌁|G|585c66|rho=0.9;k=0.03;cp=1.0;life=700;t0=200
+co|Углекислый газ|🫧|G|7d8a7a|rho=1.98;k=0.017;cp=0.85;life=1500
+ox|Кислород|⚛|G|bfe9ff|rho=1.43;k=0.026;cp=0.92
+hy|Водород|🎈|G|e8f4ff|rho=0.09;k=0.18;cp=14.3;ign=500;fuel=2600;burn=st
+ni|Азот|🔵|G|c8d6e8|rho=1.25;k=0.026;cp=1.04
+hl|Гелий|🎈|G|f3e8ff|rho=0.18;k=0.15;cp=5.2
+salt|Соль|🧂|P|f2f2f2|rho=2160;k=0.5;cp=0.9;tm=801;melt=la;sol=1;ang=0.5
+cry|Кристалл|💠|R|9be7ff|rho=2200;k=2.0;cp=0.8;tm=1400;melt=gl
+#p Почва и растения
+soil|Почва|🟫|P|4a3524|rho=1300;k=0.4;cp=1.4;ang=0.7;ign=600;fuel=200;burn=ah
+hum|Гумус|🍂|P|3a2a1a|rho=1200;k=0.3;cp=1.5;ang=0.7;ign=400;fuel=400;burn=ah
+fert|Удобрение|💩|P|5c4a2a|rho=1100;k=0.3;cp=1.5;ang=0.6
+peat|Торф|🟤|P|4b3a22|rho=900;k=0.2;cp=1.6;ang=0.8;ign=250;fuel=900;burn=ah
+moss|Мох|🌿|S|4a7a3a|rho=600;k=0.2;cp=1.8;ign=200;fuel=500;burn=ah;sp=grow
+gr|Трава|🌱|S|5fa845|rho=500;k=0.2;cp=1.8;ign=180;fuel=450;burn=ah;sp=grow
+pl|Растение|🪴|S|3f9d4a|rho=700;k=0.25;cp=1.9;ign=200;fuel=600;burn=ah;sp=grow
+seed|Семя|🌰|R|8a6a3a|rho=800;k=0.2;cp=1.7;ign=250;fuel=500;burn=ah;sp=sprout
+tree|Дерево|🌳|S|6b4f2a|rho=750;k=0.2;cp=1.7;ign=280;fuel=1200;burn=char;sp=tree
+wd|Древесина|🪵|S|9a6b3f|rho=700;k=0.18;cp=1.7;ign=300;fuel=1400;burn=char
+leaf|Лист|🍃|P|6fbf4a|rho=400;k=0.2;cp=1.8;ign=150;fuel=300;burn=ah;ang=0.95
+flw|Цветок|🌸|S|ff8fbf|rho=400;k=0.2;cp=1.8;ign=150;fuel=300;burn=ah
+fruit|Плод|🍎|R|e04a4a|rho=900;k=0.4;cp=3.5;ign=300;fuel=400;burn=ah
+wheat|Пшеница|🌾|S|d9b44a|rho=500;k=0.2;cp=1.7;ign=200;fuel=600;burn=ah;sp=grow
+#w Погода и явления
+fog|Туман|🌫|G|b8c8d8|rho=1.1;k=0.03;cp=1.2;life=900
+cld|Облако|☁|G|dde8f2|rho=0.8;k=0.03;cp=1.5;life=2400;sp=cloud
+rn|Дождь|🌧|L|5aa0e6|rho=1000;k=0.6;cp=4.18;tm=0;tb=100;frz=ic;boil=st;visc=1
+wi|Ветер|💨|G|cfe4f0|rho=1.0;k=0.026;cp=1.0;life=200;sp=wind
+sto|Шторм|🌩|G|6a7a92|rho=1.0;k=0.03;cp=1.2;life=1800;sp=storm
+lt|Молния|⚡|F|f8f4ff|life=10;glow=255;t0=9000;sp=bolt
+th|Гром|🔊|A|9aa4b8|
+rb|Радуга|🌈|A|ff9ecb|
+hail|Град|🧊|R|d8f0ff|rho=900;k=2.0;cp=2.1;tm=0;melt=wa
+tor|Торнадо|🌪|G|8a94a8|rho=0.9;k=0.03;cp=1.0;life=600;sp=vortex
+dew|Роса|💧|L|9fd8f5|rho=1000;k=0.6;cp=4.18;tm=0;tb=100;frz=ic;boil=st;visc=2
+aur|Полярное сияние|🌌|G|7affc8|rho=0.2;k=0.05;cp=1.0;life=900;glow=120
+#g Земля и вода
+sea|Море|🌊|L|1f6fb2|rho=1025;k=0.6;cp=4.0;tm=-2;tb=100;frz=ic;boil=st;ec=0.5;visc=1
+riv|Река|🏞|L|3f8fd0|rho=1000;k=0.6;cp=4.18;tm=0;tb=100;frz=ic;boil=st;visc=1
+lake|Озеро|🏊|L|2f7fc0|rho=1000;k=0.6;cp=4.18;tm=0;tb=100;frz=ic;boil=st;visc=1
+isl|Остров|🏝|S|c2a86a|rho=1700;k=0.4;cp=0.9
+mtn|Гора|⛰|S|7a7a86|rho=2700;k=1.6;cp=0.8;tm=1200;melt=la
+des|Пустыня|🏜|P|e8cf8a|rho=1600;k=0.25;cp=0.8;ang=0.35
+forest|Лес|🌲|S|2f6b3a|rho=800;k=0.2;cp=1.7;ign=250;fuel=1300;burn=char
+swamp|Болото|🪷|P|4a5a32|rho=1200;k=0.4;cp=2.0;ang=0.9;ign=400;fuel=500;burn=ah
+glac|Ледник|🏔|R|bfe8ff|rho=917;k=2.2;cp=2.1;tm=0;melt=wa
+cave|Пещера|🕳|S|3a3a44|rho=2500;k=1.4;cp=0.8
+beach|Пляж|🏖|P|e6d49a|rho=1600;k=0.25;cp=0.8;ang=0.3
+vol|Вулкан|🌋|S|5a3a32|rho=2600;k=1.2;cp=0.9;sp=volcano
+gey|Гейзер|⛲|X|9fd8e8|rho=1000;k=0.6;cp=4.0;sp=geyser
+#m Материалы и еда
+sugar|Сахар|🍬|P|f8f8ff|rho=1590;k=0.2;cp=1.2;tm=186;melt=la;sol=1;ign=350;fuel=600;burn=char;ang=0.4
+flour|Мука|🌾|P|f0e6d2|rho=600;k=0.1;cp=1.5;ang=0.6;ign=400;fuel=700;burn=ah;expl=1
+dough|Тесто|🥟|P|e8d8b0|rho=1100;k=0.3;cp=2.5;ang=0.95;ign=400;fuel=500;burn=bread
+bread|Хлеб|🍞|R|c98f4a|rho=400;k=0.1;cp=2.0;ign=300;fuel=700;burn=char
+milk|Молоко|🥛|L|f5f5f0|rho=1030;k=0.5;cp=3.9;tm=-1;tb=100;frz=ic;boil=st;visc=2
+honey|Мёд|🍯|L|e8a33a|rho=1420;k=0.4;cp=2.5;visc=9;ign=350;fuel=800;burn=char
+oil|Нефть|🛢|L|2a2a30|rho=850;k=0.15;cp=2.0;visc=3;ign=250;fuel=2200;burn=sm
+pet|Бензин|⛽|L|d8d070|rho=740;k=0.15;cp=2.2;visc=1;ign=280;fuel=2600;burn=fi;expl=1
+gas|Природный газ|🔥|G|c8b8e8|rho=0.7;k=0.03;cp=2.2;ign=450;fuel=2800;burn=co;expl=1
+plast|Пластик|🧴|S|d0d8e0|rho=950;k=0.2;cp=1.9;tm=160;melt=gl;ign=350;fuel=1500;burn=sm
+pap|Бумага|📄|S|f0ece0|rho=800;k=0.1;cp=1.3;ign=230;fuel=600;burn=ah
+cloth|Ткань|🧵|S|c8a8d8|rho=600;k=0.08;cp=1.4;ign=250;fuel=700;burn=ah
+wool|Шерсть|🧶|S|e8e0d0|rho=400;k=0.04;cp=1.6;ign=300;fuel=800;burn=ah
+lea|Кожа|🟤|S|8a5a3a|rho=900;k=0.15;cp=1.5;ign=350;fuel=900;burn=ah
+rope|Верёвка|🪢|S|c0a060|rho=700;k=0.1;cp=1.5;ign=280;fuel=800;burn=ah
+wax|Воск|🕯|S|f0e0a0|rho=900;k=0.2;cp=2.5;tm=62;melt=honey;ign=200;fuel=1600;burn=sm
+soap|Мыло|🧼|S|e0f0f8|rho=1000;k=0.3;cp=2.0;tm=120;melt=honey
+ink|Чернила|🖋|L|1a1a2e|rho=1050;k=0.5;cp=4.0;visc=2;sol=1
+paint|Краска|🎨|L|e04a8a|rho=1100;k=0.4;cp=3.0;visc=4
+glue|Клей|🩹|L|e8e8d8|rho=1100;k=0.3;cp=2.5;visc=8
+acid|Кислота|🧪|L|9fe83a|rho=1200;k=0.5;cp=3.0;visc=1;acid=1;ec=0.4
+alk|Щёлочь|🧫|L|7ad8e8|rho=1200;k=0.5;cp=3.0;visc=1;ec=0.4
+poi|Яд|☠|L|8a3ad8|rho=1100;k=0.4;cp=3.0;visc=2
+med|Лекарство|💊|R|f0a0c0|rho=1200;k=0.3;cp=2.0
+alc|Спирт|🍶|L|e8f0f8|rho=790;k=0.17;cp=2.4;tb=78;boil=st;visc=1;ign=200;fuel=1400;burn=co
+wine|Вино|🍷|L|7a1a3a|rho=990;k=0.5;cp=3.8;tb=90;boil=st;visc=2
+brick|Кирпич|🧱|S|a8503a|rho=1900;k=0.7;cp=0.9;tm=1400;melt=la
+cem|Цемент|🏗|P|a8a8a0|rho=1500;k=0.5;cp=0.9;ang=0.6
+conc|Бетон|🧱|S|9a9a96|rho=2400;k=1.0;cp=0.9
+gl|Стекло|🪟|S|bfe4f0|rho=2500;k=1.0;cp=0.8;tm=1500;melt=la
+gem|Самоцвет|💎|R|4ad8c8|rho=3000;k=2.5;cp=0.7;tm=1600;melt=la
+dia|Алмаз|💎|R|e8f8ff|rho=3500;k=200;cp=0.5;tm=3550;melt=la
+coal|Уголь|⬛|R|2a2a2e|rho=1400;k=0.3;cp=1.3;ign=400;fuel=2400;burn=ah
+char|Древесный уголь|⬛|R|3a3438|rho=500;k=0.2;cp=1.3;ign=350;fuel=2200;burn=ah
+gunp|Порох|💥|P|4a4a52|rho=1000;k=0.2;cp=1.2;ign=200;fuel=3000;burn=fi;expl=1;ang=0.5
+dyn|Динамит|🧨|S|c85a3a|rho=1300;k=0.2;cp=1.5;ign=180;fuel=4500;burn=fi;expl=2
+#o Металлы и руда
+iron|Железо|⚙|R|9aa0a8|rho=7870;k=80;cp=0.45;tm=1538;melt=la;ec=0.7;mag=1
+steel|Сталь|🔩|R|b8c0c8|rho=7850;k=50;cp=0.49;tm=1450;melt=la;ec=0.6;mag=1
+cop|Медь|🟠|R|c87a4a|rho=8960;k=400;cp=0.39;tm=1085;melt=la;ec=0.95
+tin|Олово|⚪|R|c0c4c8|rho=7300;k=67;cp=0.23;tm=232;melt=la;ec=0.5
+gold|Золото|🟡|R|ffd24a|rho=19300;k=320;cp=0.13;tm=1064;melt=la;ec=0.9
+sil|Серебро|⚪|R|e0e4ea|rho=10490;k=430;cp=0.24;tm=962;melt=la;ec=1.0
+bro|Бронза|🟤|R|b08a4a|rho=8800;k=60;cp=0.38;tm=950;melt=la;ec=0.5
+lead|Свинец|⬛|R|6a6a72|rho=11340;k=35;cp=0.13;tm=327;melt=la;ec=0.3
+merc|Ртуть|🌡|L|c8ccd4|rho=13530;k=8;cp=0.14;tm=-39;tb=357;boil=sm;ec=0.8;visc=2
+alu|Алюминий|🔘|R|d0d4da|rho=2700;k=237;cp=0.9;tm=660;melt=la;ec=0.85
+ur|Уран|☢|R|7aff8a|rho=19100;k=27;cp=0.12;tm=1132;melt=la;ec=0.4;rad=1;glow=60
+mag|Магнит|🧲|S|c83a3a|rho=5000;k=20;cp=0.5;ec=0.5;sp=magnet
+rust|Ржавчина|🟤|P|8a4a2a|rho=5200;k=1.0;cp=0.5;ang=0.5
+#s Наука и частицы
+atom|Атом|⚛|A|a8d8ff|
+mol|Молекула|🧬|A|8ad8c8|
+elec|Электрон|🔹|X|6ad8ff|rho=0.001;life=120;glow=90;sp=charge
+prt|Протон|🔴|A|ff6a6a|
+neut|Нейтрон|⚪|X|e0e0e8|rho=0.001;life=200;sp=neutron
+nucl|Ядро|🎯|A|ffb06a|
+ion|Ион|➕|G|b0f0ff|rho=1.0;k=0.03;cp=1.0;life=600;ec=1;glow=40
+plas|Плазма|🟣|F|c86aff|life=60;glow=255;t0=8000;ec=1
+rad|Радиация|☢|X|a8ff4a|rho=0.001;life=90;glow=110;sp=radiation
+fis|Ядерное деление|💥|A|ff8a4a|
+fus|Ядерный синтез|☀|A|ffe06a|
+#t Техника
+wire|Провод|➰|S|c8a04a|rho=8900;k=300;cp=0.4;tm=1085;melt=la;ec=1
+bat|Батарея|🔋|S|4ac86a|rho=2000;k=5;cp=1.0;ec=1;sp=battery
+cur|Ток|⚡|A|ffe86a|
+chip|Микросхема|🔲|S|3a5a4a|rho=2300;k=30;cp=0.7;ec=0.3
+comp|Компьютер|💻|S|5a6a7a|rho=2000;k=20;cp=0.8;ec=0.4
+net|Интернет|🌐|A|6ab0ff|
+iai|Искусственный разум|🤖|A|b06aff|
+code|Код|⌨|A|8affc8|
+lamp|Лампа|💡|S|ffe89a|rho=1000;k=1;cp=0.8;glow=200;ec=0.5;sp=lamp
+las|Лазер|🔴|X|ff3a3a|rho=0.001;life=30;glow=255;sp=laser
+lens|Линза|🔍|S|cfe8f8|rho=2500;k=1;cp=0.8;tm=1500;melt=la
+mir|Зеркало|🪞|S|e0e8f0|rho=2500;k=1;cp=0.8;ec=0.6
+prism|Призма|🔺|S|d8f0ff|rho=2500;k=1;cp=0.8;tm=1500;melt=la
+tel|Телескоп|🔭|S|7a8a9a|rho=2500;k=30;cp=0.6;ec=0.3
+eng|Двигатель|⚙|S|7a7a82|rho=4000;k=40;cp=0.5;ec=0.4;sp=engine
+wheel|Колесо|🛞|S|3a3a42|rho=1200;k=0.2;cp=1.5;ign=350;fuel=1200;burn=sm
+gear|Шестерня|⚙|S|9aa0a8|rho=7800;k=50;cp=0.45;tm=1450;melt=la;ec=0.6
+mach|Машина|🏭|S|8a8a92|rho=4000;k=40;cp=0.6;ec=0.4
+rob|Робот|🤖|S|a8b0c0|rho=3000;k=30;cp=0.7;ec=0.6;sp=robot
+phone|Телефон|📱|S|4a5a6a|rho=2000;k=20;cp=0.8;ec=0.5
+#u Строения и транспорт
+rock|Ракета|🚀|S|e0e4ea|rho=3000;k=30;cp=0.6;ec=0.5;sp=rocket
+sat|Спутник|🛰|S|c8d0d8|rho=2500;k=30;cp=0.6;ec=0.6
+plane|Самолёт|✈|S|d8dce4|rho=2700;k=100;cp=0.7;ec=0.7
+car|Автомобиль|🚗|S|c83a4a|rho=3000;k=40;cp=0.6;ec=0.5
+ship|Корабль|🚢|S|8a6a4a|rho=800;k=0.2;cp=1.5;ign=300;fuel=1400;burn=char
+boat|Лодка|⛵|S|a87a4a|rho=600;k=0.2;cp=1.6;ign=300;fuel=1200;burn=char
+bal|Воздушный шар|🎈|G|ff8a9a|rho=0.2;k=0.05;cp=1.5;life=1800;sp=balloon
+wm|Ветряная мельница|🌀|S|c8b89a|rho=900;k=0.3;cp=1.2;ign=300;fuel=1000;burn=char
+turb|Турбина|🌬|S|a8b0b8|rho=5000;k=40;cp=0.5;ec=0.5
+dam|Дамба|🧱|S|8a8a86|rho=2400;k=1.0;cp=0.9
+bridge|Мост|🌉|S|7a7a82|rho=3000;k=40;cp=0.6
+house|Дом|🏠|S|c8a87a|rho=1200;k=0.4;cp=1.2;ign=300;fuel=1500;burn=char
+city|Город|🏙|S|8a94a8|rho=2000;k=0.8;cp=1.0;ign=400;fuel=1200;burn=ah
+castle|Замок|🏰|S|9a9aa2|rho=2600;k=1.4;cp=0.8
+temple|Храм|⛩|S|d8c8a8|rho=2200;k=1.0;cp=0.9
+tower|Башня|🗼|S|a8a8b0|rho=2600;k=1.4;cp=0.8
+fact|Завод|🏭|S|6a6a72|rho=2500;k=20;cp=0.8;ec=0.3;sp=factory
+farm|Ферма|🚜|S|a88a4a|rho=1000;k=0.3;cp=1.4;ign=300;fuel=1000;burn=ah
+road|Дорога|🛣|S|4a4a50|rho=2200;k=0.8;cp=0.9
+#l Жизнь
+life|Жизнь|💚|X|6aff8a|rho=800;k=0.3;cp=2.0;glow=70;sp=life
+cell|Клетка|🔬|X|8ae8c8|rho=1000;k=0.4;cp=3.5;sp=cell
+dna|ДНК|🧬|A|6ad8ff|
+ptn|Белок|🥚|A|f0e8c8|
+bact|Бактерия|🦠|X|a8e86a|rho=1000;k=0.4;cp=3.5;sp=microbe
+vir|Вирус|🧫|X|e86aa8|rho=1000;k=0.4;cp=3.5;sp=virus
+algae|Водоросли|🌿|L|3a9a6a|rho=1010;k=0.5;cp=3.8;visc=4;ign=300;fuel=300;burn=ah;sp=algae
+mush|Гриб|🍄|S|d86a6a|rho=600;k=0.2;cp=2.0;ign=250;fuel=400;burn=ah;sp=fungus
+worm|Червь|🪱|X|e8a0a8|rho=1050;k=0.4;cp=3.5;sp=crawl
+ins|Насекомое|🐜|X|6a4a2a|rho=900;k=0.3;cp=2.5;sp=fly
+bee|Пчела|🐝|X|ffd24a|rho=900;k=0.3;cp=2.5;sp=fly
+butt|Бабочка|🦋|X|8ab0ff|rho=600;k=0.2;cp=2.5;sp=fly
+ant|Муравей|🐜|X|4a3a2a|rho=900;k=0.3;cp=2.5;sp=crawl
+spi|Паук|🕷|X|3a3a42|rho=900;k=0.3;cp=2.5;sp=crawl
+egg|Яйцо|🥚|R|f8f0e0|rho=1100;k=0.4;cp=3.0;ign=300;fuel=400;burn=ah
+bird|Птица|🐦|X|6ab0e8|rho=700;k=0.3;cp=2.5;sp=fly
+fish|Рыба|🐟|X|6ad8c8|rho=1050;k=0.5;cp=3.5;sp=swim
+shark|Акула|🦈|X|7a8a9a|rho=1080;k=0.5;cp=3.5;sp=swim
+whale|Кит|🐋|X|4a6a9a|rho=1050;k=0.5;cp=3.5;sp=swim
+crab|Краб|🦀|X|e86a4a|rho=1100;k=0.4;cp=3.0;sp=crawl
+shell|Ракушка|🐚|R|f0d8c8|rho=2500;k=1.2;cp=0.8
+frog|Лягушка|🐸|X|6ac84a|rho=1050;k=0.4;cp=3.5;sp=hop
+snake|Змея|🐍|X|4a8a4a|rho=1050;k=0.4;cp=3.5;sp=crawl
+dino|Динозавр|🦕|A|6a9a6a|
+foss|Ископаемое|🦴|R|b8a88a|rho=2500;k=1.2;cp=0.8
+bone|Кость|🦴|R|f0ece0|rho=1900;k=0.5;cp=1.3;ign=500;fuel=400;burn=ah
+blood|Кровь|🩸|L|c8203a|rho=1060;k=0.5;cp=3.6;tm=-2;tb=100;frz=ic;boil=st;visc=3
+heart|Сердце|❤|A|ff4a6a|
+brain|Мозг|🧠|A|ffb0c8|
+anim|Животное|🐾|A|c8a06a|
+mamm|Млекопитающее|🦌|A|b8905a|
+wolf|Волк|🐺|A|8a8a92|
+dog|Собака|🐕|A|c89a5a|
+cat|Кошка|🐈|A|e0a860|
+horse|Лошадь|🐎|A|8a5a3a|
+cow|Корова|🐄|A|f0f0e8|
+sheep|Овца|🐑|A|f8f8f0|
+mouse|Мышь|🐁|A|b0a8a0|
+lion|Лев|🦁|A|e8b04a|
+monk|Обезьяна|🐒|A|a87a4a|
+#h Человек и общество
+human|Человек|🧍|A|f0c8a0|
+child|Ребёнок|🧒|A|ffd8b0|
+fam|Семья|👪|A|ffc8a8|
+tribe|Племя|🏕|A|c8a878|
+king|Король|👑|A|ffd84a|
+knight|Рыцарь|🛡|A|c8d0d8|
+hero|Герой|🦸|A|ff8a4a|
+wiz|Волшебник|🧙|A|a86aff|
+tool|Инструмент|🔧|A|a8b0b8|
+hamm|Молот|🔨|A|8a8a92|
+axe|Топор|🪓|A|9aa0a8|
+knife|Нож|🔪|A|d0d4da|
+sword|Меч|⚔|A|e0e4ea|
+war|Война|💥|A|c83a3a|
+peace|Мир|🕊|A|a8e8ff|
+crown|Корона|👑|A|ffd84a|
+#c Культура и мысли
+mind|Разум|🧠|A|c8a8ff|
+thou|Мысль|💭|A|d8c8ff|
+idea|Идея|💡|A|ffe88a|
+know|Знание|📚|A|8ac8ff|
+sci|Наука|🔬|A|6ad8e8|
+math|Математика|➗|A|8a9aff|
+num|Число|🔢|A|a8b8ff|
+log|Логика|🧩|A|9a8aff|
+phil|Философия|🏛|A|c8b8a8|
+art|Искусство|🎭|A|ff8ab0|
+mus|Музыка|🎵|A|b08aff|
+song|Песня|🎤|A|c8a0ff|
+drum|Барабан|🥁|A|c86a4a|
+guit|Гитара|🎸|A|d89a5a|
+pict|Картина|🖼|A|ffa8c8|
+poem|Поэзия|📜|A|f0d8a8|
+book|Книга|📖|A|c8a87a|
+story|История|📚|A|d8b88a|
+word|Слово|🔤|A|a8d8e8|
+lang|Язык|🗣|A|8ac8d8|
+writ|Письменность|✍|A|e8d8b8|
+game|Игра|🎲|A|8affa8|
+ba|Мяч|⚽|R|f8f8f8|rho=400;k=0.2;cp=1.5;ign=350;fuel=800;burn=sm
+#a Абстракции
+time|Время|⏳|A|d8d8e8|
+space|Пространство|🌌|A|6a7ab0|
+grav|Гравитация|🍎|A|a8a8d8|
+force|Сила|💪|A|ff9a6a|
+motion|Движение|🏃|A|6affc8|
+entropy|Энтропия|🌀|A|b0a8c8|
+chaos|Хаос|🌪|A|c86a8a|
+order|Порядок|🔷|A|6ab0e8|
+info|Информация|ℹ|A|8ad8ff|
+sound|Звук|🔉|A|a8c8e8|
+echo|Эхо|📢|A|b8d8f0|
+color|Цвет|🎨|A|ff8ae8|
+shadow|Тень|🌑|A|3a3a52|
+dream|Сон|💤|A|b0b8ff|
+night|Ночь|🌙|A|2a3a6a|
+day|День|☀|A|ffe8a8|
+love|Любовь|💗|A|ff6a9a|
+fear|Страх|😨|A|6a6a8a|
+hope|Надежда|🌟|A|ffe86a|
+truth|Истина|🔍|A|e8f0ff|
+beauty|Красота|🌹|A|ff8ac8|
+infin|Бесконечность|♾|A|a8e8ff|
+death|Смерть|💀|A|4a4a5a|
+rebirth|Перерождение|🔄|A|8affb0|
+fate|Судьба|🎴|A|c8a8e8|
+#k Космос
+sky|Небо|🌤|A|7ab8e8|
+atm|Атмосфера|🌍|G|8ac8e8|rho=1.2;k=0.026;cp=1.0
+star|Звезда|⭐|X|ffe88a|rho=1400;k=10;cp=1.0;glow=255;t0=5500;sp=star
+sun|Солнце|☀|X|fff0a0|rho=1400;k=10;cp=1.0;glow=255;t0=5800;sp=star
+moon|Луна|🌕|R|e8e8d8|rho=3340;k=1.0;cp=0.7
+planet|Планета|🪐|S|6a9a8a|rho=5500;k=2.0;cp=0.8
+comet|Комета|☄|R|c8e8ff|rho=500;k=1.0;cp=1.5;glow=60;sp=comet
+ast|Астероид|🪨|R|7a7268|rho=2800;k=1.2;cp=0.8;sp=fall
+met|Метеор|🌠|F|ffd8a8|life=40;glow=220;t0=2000;sp=fall
+mt2|Метеорит|🌑|R|4a4238|rho=3500;k=1.5;cp=0.7
+bh|Чёрная дыра|🕳|X|0a0a12|rho=1000000;glow=40;sp=bhole
+neb|Туманность|🌌|G|c86ae8|rho=0.05;k=0.02;cp=1.0;glow=70
+nova|Сверхновая|💥|X|fff8e0|rho=100;k=10;cp=1.0;glow=255;t0=100000;sp=nova
+gal|Галактика|🌌|A|b08aff|
+unv|Вселенная|🌠|A|8a8aff|
+#y Мифы и магия
+magic|Магия|🪄|A|c86aff|
+spell|Заклинание|📜|A|e88aff|
+drag|Дракон|🐉|A|c84a3a|
+phoen|Феникс|🔥|A|ff8a3a|
+uni|Единорог|🦄|A|ffc8f0|
+fairy|Фея|🧚|A|a8ffd8|
+elf|Эльф|🧝|A|c8e8a8|
+giant|Великан|🗿|A|9a9a8a|
+mons|Монстр|👹|A|8a4a6a|
+angel|Ангел|👼|A|fff0c8|
+demon|Демон|😈|A|c83a5a|
+ghost|Призрак|👻|X|e8f0ff|rho=0.05;k=0.02;cp=1.0;life=1200;glow=50;sp=ghost
+soul|Душа|🕊|A|d8f0ff|
+#r Духовное
+relig|Религия|⛪|A|d8c8a8|
+pray|Молитва|🙏|A|ffe8c8|
+faith|Вера|🕯|A|ffd8a8|
+mira|Чудо|🌟|A|fff0a8|
+karma|Карма|☯|A|c8c8d8|
+heaven|Рай|☁|A|fff8e0|
+hell|Ад|🔥|A|c83a2a|
+god|Бог|✨|X|fff8c8|rho=1000;k=1;cp=1;glow=255;t0=1000;sp=god
+rit|Ритуал|🔮|A|b08ae8|`;
 
-// Состояние игры
-let score = 0, lives = 3, wave = 1, gameOver = false, paused = false;
-let spawnTimer = 0, waveTimer = 0, enemiesInWave = 0;
+const RDATA=`wa+ea=pl
+wa+fi=st
+wa+ai=fog
+wa+wa=lake
+fi+fi=en
+fi+ai=heat
+ai+ai=press
+press+ai=wi
+fi+en=light
+ai+light=sky
+sky+sky=space
+space+space=vac
+wa+vac=cold
+wa+cold=ic
+st+ai=cld
+cld+cld=rn
+cld+press=rn
+cld+cold=sn
+rn+ea=mu
+ea+ea=mtn
+ea+fi=la
+ea+press=ro
+ro+fi=la
+la+wa=ob
+la+ai=ro
+ro+wi=sa
+sa+wi=du
+sa+fi=gl
+sa+press=ro
+mtn+wa=riv
+mtn+wi=sa
+lake+wa=sea
+sea+fi=salt
+sea+sa=beach
+sea+ea=isl
+riv+wa=lake
+sn+press=glac
+sn+cold=ic
+ic+fi=wa
+ic+heat=wa
+ic+press=wa
+st+wa=fog
+fog+wa=rn
+fog+cold=dew
+dew+cold=ic
+cld+wa=rn
+cld+wi=sto
+sto+en=lt
+lt+ai=th
+lt+fi=plas
+rn+light=rb
+rn+cold=hail
+wi+wi=tor
+wi+press=tor
+sto+wa=rn
+sky+wa=cld
+sky+cold=sn
+ai+cold=fog
+wa+press=ic
+mu+wa=swamp
+mu+fi=cl
+ea+dew=mu
+soil+wa=mu
+ah+mu=soil
+du+wa=mu
+du+press=ro
+ah+ai=sm
+sm+press=ah
+lt+sa=gl
+fi+cl=brick
+en+en=heat
+heat+wa=st
+cold+st=ic
+heat+cold=wa
+press+st=wa
+salt+wa=cry
+cry+press=gem
+coal+press=dia
+salt+ic=cold
+alk+wa=soap
+mu+pl=soil
+soil+pl=hum
+hum+ea=soil
+hum+time=coal
+pl+time=peat
+peat+press=coal
+coal+fi=en
+soil+fi=ah
+pl+fi=ah
+pl+ea=gr
+pl+ro=moss
+pl+light=ox
+pl+sun=flw
+pl+wa=algae
+pl+swamp=mush
+hum+wa=fert
+fert+soil=gr
+seed+soil=tree
+seed+wa=pl
+fruit+wa=seed
+flw+time=fruit
+fruit+press=sugar
+tree+wi=leaf
+tree+tool=wd
+tree+fi=char
+wd+fi=char
+gr+human=wheat
+wheat+ro=flour
+flour+wa=dough
+dough+fi=bread
+leaf+fi=sm
+leaf+wa=algae
+gr+gr=forest
+tree+tree=forest
+forest+fi=ah
+sa+sa=des
+des+wi=tor
+ro+wa=cave
+cave+wa=riv
+mtn+la=vol
+vol+wa=gey
+vol+fi=la
+glac+wa=riv
+glac+heat=wa
+isl+pl=forest
+sea+wi=sto
+sea+cold=ic
+riv+press=gey
+mtn+cold=glac
+swamp+time=peat
+beach+wa=sea
+cave+time=cry
+sugar+bact=alc
+fruit+time=alc
+alc+fruit=wine
+alc+fi=st
+cow+human=milk
+milk+time=bact
+bee+flw=honey
+bee+honey=wax
+algae+press=oil
+foss+press=oil
+oil+heat=pet
+pet+press=plast
+oil+time=gas
+gas+fi=co
+wd+wa=pap
+wool+tool=cloth
+gr+tool=rope
+cloth+cloth=rope
+anim+knife=lea
+ah+wa=alk
+wax+alk=soap
+sm+wa=ink
+ink+color=paint
+ink+oil=paint
+ptn+wa=glue
+co+wa=acid
+co+st=acid
+mush+wa=poi
+poi+sci=med
+cl+heat=cem
+cem+wa=conc
+conc+sa=road
+coal+salt=gunp
+gunp+pap=dyn
+gunp+fi=en
+dyn+fi=en
+oil+fi=sm
+pet+fi=en
+gas+press=pet
+sugar+fi=char
+flour+fi=ah
+bread+fi=char
+milk+flour=dough
+honey+wa=alc
+wax+fi=sm
+soap+wa=alk
+acid+alk=salt
+acid+iron=hy
+acid+ro=sa
+alk+oil=soap
+poi+know=med
+alc+wa=wine
+wine+time=acid
+glue+pap=book
+paint+pap=pict
+ink+pap=writ
+ea+la=iron
+ro+la=cop
+ro+heat=tin
+ro+coal=lead
+ro+sun=gold
+ro+moon=sil
+cop+tin=bro
+iron+coal=steel
+cl+elec=alu
+sil+acid=merc
+star+ro=ur
+nova+ro=ur
+iron+lt=mag
+iron+cur=mag
+iron+wa=rust
+iron+ox=rust
+rust+fi=iron
+steel+fi=la
+cop+fi=la
+gold+fi=la
+merc+heat=sm
+merc+cold=cry
+ur+time=rad
+ur+neut=fis
+fis+wa=heat
+fis+en=rad
+alu+eng=plane
+cop+tool=wire
+steel+tool=gear
+gold+tool=crown
+sil+gl=mir
+lead+gl=lens
+en+vac=atom
+atom+atom=mol
+atom+sci=prt
+atom+lt=elec
+atom+press=neut
+atom+en=ion
+prt+neut=nucl
+nucl+elec=atom
+mol+wa=cell
+mol+en=life
+ion+heat=plas
+hy+press=fus
+hy+fus=hl
+fus+en=heat
+wa+lt=hy
+wa+cur=hy
+hy+fi=st
+hy+ox=wa
+atm+cold=ni
+ni+ox=ai
+ai+elec=ion
+ox+fi=co
+co+pl=ox
+ox+en=plas
+rad+wa=ion
+rad+life=vir
+elec+wire=cur
+bat+wire=cur
+plas+sky=aur
+lt+sky=aur
+wire+acid=bat
+sa+cur=chip
+chip+code=comp
+num+log=code
+comp+comp=net
+comp+mind=iai
+gl+cur=lamp
+light+gem=las
+gl+tool=lens
+lens+lens=prism
+lens+mir=tel
+steel+st=eng
+wd+tool=wheel
+wheel+steel=gear
+eng+gear=mach
+mach+iai=rob
+comp+sound=phone
+light+ro=shadow
+eng+dyn=rock
+rock+comp=sat
+mach+wheel=car
+wd+wi=ship
+wd+sea=boat
+hl+cloth=bal
+wheel+wi=wm
+wm+steel=turb
+conc+riv=dam
+steel+riv=bridge
+brick+wd=house
+house+house=city
+house+king=castle
+house+faith=temple
+house+sky=tower
+mach+house=fact
+soil+human=farm
+sa+cem=conc
+turb+cur=en
+wm+gr=flour
+dam+riv=lake
+bridge+road=city
+fact+sm=co
+farm+wheat=bread
+city+human=story
+rock+sky=sat
+plane+wa=ship
+car+road=city
+bird+mach=plane
+wa+en=life
+life+wa=cell
+cell+time=dna
+dna+wa=ptn
+cell+soil=bact
+ptn+dna=vir
+life+soil=worm
+life+ai=ins
+ins+flw=bee
+ins+color=butt
+ins+ea=ant
+ins+rope=spi
+anim+life=egg
+egg+ai=bird
+egg+wa=fish
+fish+time=shark
+mamm+sea=whale
+shell+life=crab
+sea+life=shell
+fish+soil=frog
+anim+poi=snake
+anim+time=dino
+dino+ro=foss
+anim+death=bone
+life+iron=blood
+blood+motion=heart
+mind+cell=brain
+life+motion=anim
+anim+blood=mamm
+anim+forest=wolf
+wolf+human=dog
+anim+house=cat
+anim+road=horse
+anim+farm=cow
+anim+moss=sheep
+anim+wheat=mouse
+anim+des=lion
+mamm+tree=monk
+sheep+tool=wool
+fish+wa=algae
+bact+wa=algae
+bact+fruit=alc
+vir+bact=poi
+mush+soil=pl
+worm+soil=hum
+ant+soil=hum
+butt+flw=fruit
+egg+heat=bird
+egg+cold=fish
+bone+time=foss
+blood+wa=cell
+life+heat=bact
+life+cold=dream
+cell+cell=anim
+dna+time=anim
+monk+mind=human
+human+love=child
+child+human=fam
+fam+fam=tribe
+tribe+crown=king
+gold+gem=crown
+human+sword=knight
+knight+love=hero
+human+magic=wiz
+human+ro=tool
+tool+ro=hamm
+iron+wd=axe
+tool+iron=knife
+knife+steel=sword
+tribe+sword=war
+war+love=peace
+human+human=love
+human+sound=lang
+human+ea=farm
+human+wa=boat
+tool+tool=mach
+hamm+ro=sa
+axe+tree=wd
+knife+tree=wd
+sword+war=death
+knight+horse=hero
+life+light=mind
+mind+time=thou
+thou+thou=idea
+idea+writ=know
+know+math=sci
+num+num=math
+thou+order=log
+know+thou=phil
+idea+color=art
+art+sound=mus
+mus+word=song
+mus+wd=drum
+mus+rope=guit
+art+paint=pict
+word+beauty=poem
+pap+writ=book
+book+time=story
+lang+sound=word
+word+pap=writ
+story+idea=game
+lea+ai=ba
+idea+order=num
+num+word=info
+know+log=truth
+art+love=beauty
+book+know=sci
+pict+story=book
+mus+human=song
+ba+human=game
+lang+lang=war
+book+mind=know
+writ+num=code
+sci+tel=star
+sci+wa=mol
+sun+sky=day
+moon+sky=night
+day+night=time
+space+ea=grav
+en+ea=force
+force+ai=motion
+heat+time=entropy
+entropy+en=chaos
+chaos+mind=order
+motion+ai=sound
+sound+ro=echo
+light+prism=color
+night+mind=dream
+death+mind=fear
+dream+light=hope
+life+time=death
+death+life=rebirth
+time+human=fate
+space+num=infin
+sound+time=mus
+wa+time=entropy
+fi+time=entropy
+grav+space=bh
+sky+ai=atm
+cld+space=neb
+neb+grav=star
+star+sky=sun
+grav+ro=planet
+planet+ro=moon
+ic+space=comet
+ro+space=ast
+ast+atm=met
+met+ea=mt2
+star+grav=bh
+star+death=nova
+star+star=gal
+space+time=unv
+nova+space=neb
+sun+wa=life
+sun+gr=wheat
+sun+sea=st
+sun+ic=wa
+moon+wa=dew
+planet+wa=life
+comet+atm=met
+ast+ast=planet
+bh+time=vac
+gal+gal=unv
+star+time=nova
+sun+time=day
+moon+time=night
+atm+lt=sto
+en+idea=magic
+magic+word=spell
+dino+fi=drag
+bird+rebirth=phoen
+horse+magic=uni
+butt+magic=fairy
+human+forest=elf
+human+mtn=giant
+anim+fear=mons
+soul+light=angel
+soul+hell=demon
+soul+death=ghost
+life+mind=soul
+magic+wa=mira
+spell+fi=en
+drag+human=war
+phoen+ah=bird
+uni+light=rb
+fairy+flw=beauty
+elf+magic=wiz
+giant+ro=mtn
+mons+hero=story
+angel+human=faith
+demon+human=fear
+ghost+night=dream
+soul+time=rebirth
+magic+tool=wiz
+spell+book=writ
+faith+tribe=relig
+faith+word=pray
+hope+soul=faith
+faith+en=mira
+fate+order=karma
+sky+soul=heaven
+fi+death=hell
+life+unv=god
+soul+infin=god
+love+order=god
+pray+fi=rit
+god+wa=mira
+god+life=soul
+god+ea=pl
+god+fi=light
+god+ai=soul
+god+chaos=order
+god+death=rebirth
+god+human=angel
+god+hell=demon
+relig+book=writ
+temple+pray=faith
+rit+wa=life
+karma+death=rebirth
+heaven+hell=karma
+mira+human=hero
+faith+sci=phil
+relig+war=peace
+st+turb=en
+lt+sea=hy
+lt+cop=cur
+lt+tree=fi
+coal+ox=en
+char+fi=co
+char+ox=co
+sea+time=salt
+sn+sn=glac
+sn+wa=ic
+ic+ic=glac
+hail+fi=wa
+fog+light=rb
+dew+sun=st
+rn+soil=pl
+rn+seed=tree
+fert+seed=tree
+mtn+time=sa
+ro+ro=mtn
+la+la=vol
+la+sea=ob
+sm+sm=fog
+du+du=des
+ah+soil=hum
+gl+gl=lens
+steel+steel=bridge
+iron+fi=la
+cop+cop=wire
+ur+ur=nova
+rad+rad=ur
+plas+plas=star
+hy+hy=hl
+hy+star=fus
+atom+heat=ion
+mol+mol=ptn
+dna+cell=bact
+life+life=anim
+life+sun=pl
+egg+sea=fish
+life+tree=bird
+cell+light=pl
+bact+cell=vir
+blood+life=heart
+bone+tool=knife
+egg+time=life
+bird+bird=egg
+worm+time=ins
+human+fi=bread
+human+book=know
+human+star=fate
+human+death=soul
+human+night=dream
+mind+mind=math
+mind+sound=word
+idea+sci=know
+know+know=phil
+art+art=beauty
+mus+mus=song
+love+love=fam
+love+death=fear
+love+life=child
+war+war=death
+peace+peace=heaven
+time+time=infin
+god+god=unv
+god+space=heaven
+god+mind=soul
+god+ro=life
+soul+soul=god
+faith+faith=relig
+pray+pray=rit
+magic+magic=mira
+chaos+time=death
+order+order=cry
+entropy+life=death
+light+light=sun
+light+time=day
+shadow+shadow=night
+sound+sound=echo
+sound+word=lang
+heat+heat=fi
+cold+cold=ic
+press+press=heat
+en+light=star
+force+force=press
+motion+motion=wi`;
 
-// Игрок
-const player = {
-  x: W/2, y: H - 80, w: 40, h: 40,
-  speed: 300, cooldown: 0, fireRate: 0.2,
-  power: 1, invincible: 0
-};
+/* 34 закона: название | формула | как реализовано */
+const LAWS=[
+["Второй закон Ньютона, свободное падение","a = g;  v += g·Δt","Каждая частица копит скорость: Δv = 0.136 клетки/шаг при g=9.81 м/с², масштаб 1 клетка ≈ 2 см, Δt = 1/60 с. Слайдер g меняет ускорение вплоть до невесомости."],
+["Сопротивление среды, предельная скорость","F_d = ½·ρ·C·v²·A","Скорость падения ограничена 6 клетками/шаг (≈7 м/с): дальше сопротивление уравновешивает вес."],
+["Закон Архимеда","F_A = ρ_ж·g·V","Обмен клеток по плотности: лёд (917) всплывает в воде (1000), нефть (850) лежит на воде, CO₂ (1.98) тонет в воздухе (1.2), гелий (0.18) поднимается."],
+["Уравнение состояния идеального газа","ρ = ρ₀·T₀/T","Линеаризовано около 20 °C: ρ(T)=ρ₀·(1−0.0034·(T−20)). Горячий газ легче холодного — пар и дым поднимаются, холодный CO₂ стелется по полу."],
+["Угол естественного откоса","tan θ = μ","Вероятность скатывания порошка = 1−ang: песок 0.35 (сыпучий), глина 0.9 (держит стенку), снег 0.9. Твёрдые тела (R) не скатываются вовсе."],
+["Вязкость, закон Пуазёйля","Q ∝ ΔP·r⁴/(8·η·L)","Растекание жидкости = 6/η клеток за шаг: вода 6, нефть 2, мёд и лава 1. Поэтому мёд ползёт, а вода мгновенно выравнивает уровень."],
+["Теплопроводность, закон Фурье","q = −k·∇T;  α = k/(ρ·c)","Явная схема по 4 соседям, коэффициент обмена min(α_i,α_j) ≤ 0.045, сумма ≤ 0.18 < 0.5 — условие устойчивости выполнено. Металлы проводят тепло в десятки раз быстрее воды."],
+["Уравнение теплового баланса","Q = c·m·ΔT","Изменение температуры делится на теплоёмкость cp: вода (4.18) нагревается медленно, медь (0.39) — быстро."],
+["Скрытая теплота, метод энтальпии","Q = m·L","При Tm/Tb температура «замирает»: избыток тепла копится в энтальпии, пока не наберётся L/c. Лёд: 334 кДж/кг, испарение воды: 2257 кДж/кг — поэтому вода кипит не мгновенно."],
+["Фазовые переходы","T = Tm (плавление), T = Tb (кипение)","У каждого вещества свои точки и продукты: лёд↔вода↔пар, лава↔камень, песок→стекло (1700 °C), глина→кирпич (1100 °C), ртуть→пар (357 °C)."],
+["Охлаждение Ньютона","dT/dt = −h·(T − T∞)","Релаксация к температуре среды (слайдер T°): газы остывают быстрее твёрдых тел."],
+["Излучение Стефана–Больцмана","P = ε·σ·T⁴","Горячие клетки теряют энергию ∝ (T−T∞)³: лава остывает и каменеет, звезда светит и держит температуру синтезом."],
+["Конвекция","горячее → легче → всплывает","Пустая клетка = воздух: если он горячее соседа сверху, температуры меняются местами — видны восходящие тепловые потоки (включи тепловизор)."],
+["Диффузия, закон Фика","J = −D·∇c","Газы блуждают случайно и перемешиваются; соль, сахар и чернила растворяются в воде."],
+["Растворимость и электролит","NaCl → Na⁺ + Cl⁻","Соль + вода → морская вода: её проводимость 0.5 против 0.02 у чистой. Морская вода проводит ток и электролизуется."],
+["Криоскопия (понижение точки замерзания)","ΔTm = −K·m","Соль на льду роняет его температуру и плавит лёд даже ниже 0 °C (до −21 °C)."],
+["Горение: треугольник огня","топливо + O₂ + T_ign → CO₂ + зола + Q","Нужны одновременно горючее, окислитель рядом (воздух/O₂) и T ≥ температуры воспламенения. Q = m·q加热 соседние клетки — fire самораспространяется."],
+["Сохранение массы","Σm(до) = Σm(после)","Реакции перераспределяют вещество: кислород исчезает, появляется CO₂; топливо → зола/уголь/дым; зола + вода → щёлочь."],
+["Закон Ома","I = U/R","Заряд перетекает к соседям пропорционально проводимости σ: серебро 1.0, медь 0.95, железо 0.7, вода 0.02, стекло 0. Изолятор держит статику."],
+["Закон Джоуля–Ленца","Q = I²·R·t","Ток греет проводник: тонкий/плохой проводник нагревается сильнее и может расплавиться."],
+["Диэлектрический пробой","E > E_cr ≈ 3 МВ/м","Заряд воздуха выше 150 → канал молнии (T ≈ 9000 °C), который ищет путь наименьшего сопротивления: вниз, по проводникам и заряду."],
+["Электролиз, закон Фарадея","2H₂O → 2H₂↑ + O₂↑","Заряженная вода распадается на водород и кислород. Водород горит и взрывается, кислород усиливает горение."],
+["Магнетизм","F ∝ 1/r²","Магнит притягивает железо и сталь (mag=1) в радиусе 10 клеток, сила падает как квадрат расстояния."],
+["Радиоактивный распад","N = N₀·e^(−λt)","Уран случайно испускает частицы (≈0.2%/шаг), греется и ионизирует соседей; радиация убивает живые клетки."],
+["Цепная реакция деления","n + ²³⁵U → осколки + 2–3n + ~200 МэВ","Нейтрон, попавший в уран, даёт взрыв, тепло и новые нейтроны — реакция идёт сама, пока есть топливо."],
+["Термоядерный синтез","4·¹H → ⁴He + энергия","Звезда превращает водород в гелий, держит 5500–5800 °C и светит; из водорода под давлением получается гелий."],
+["Тяготение и аккреция","F = G·M·m/r²","Чёрная дыра и звезда притягивают материю (ускорение ∝1/r²), дыра поглощает всё в радиусе 2 клеток и изредка испускает хокинговскую радиацию."],
+["Давление и ударная волна","P·V = const;  импульс ∝ 1/r","Взрывчатка (expl) и пар в замкнутом объёме дают ударную волну: клетки получают импульс наружу, слабые структуры разрушаются в пыль."],
+["Капиллярность, закон Жюрена","h = 2σ·cosθ/(ρ·g·r)","Растение поднимает воду из почвы вверх против гравитации — так дерево растёт, даже если вода внизу."],
+["Фотосинтез","6CO₂ + 6H₂O + hν → C₆H₁₂O₆ + 6O₂","Растение при освещённости > 25 превращает CO₂ в кислород и наращивает новые клетки. Без света рост останавливается."],
+["Оптика: излучение, отражение, дисперсия","E ∝ 1/r²;  θ_i = θ_r","Свет гаснет по расстоянию, зеркало отражает луч лазера, призма раскладывает свет в цвет, лампа светит только под током."],
+["Звук требует среды","v = √(K/ρ)","В вакууме звук не распространается — звуковая сцена глохнет, если вокруг много вакуума. Гром рождается из молнии."],
+["Второе начало термодинамики","dS ≥ 0","Тепло всегда течёт от горячего к холодному и рассеивается; порядок сам не появляется — только через Разум, Порядок или Бога."],
+["Импульс и инерция","p = m·v;  F·Δt = Δp","Инструмент «Толчок», взрывы, магниты и вихри дают клеткам скорость, которая затухает при столкновениях — частицы летят по инерции."]
+];
 
-// Массивы объектов
-let bullets = [], enemies = [], particles = [], powerups = [], stars = [];
-const keys = {};
+/* ============================================================
+   2. ПАРСИНГ ДАННЫХ
+   ============================================================ */
+const PH={S:1,R:2,P:3,L:4,G:5,F:6,X:7,A:8};
+const PHNAME={0:'пустота',1:'твёрдое (структура)',2:'твёрдое тело',3:'порошок',4:'жидкость',5:'газ',6:'огонь/плазма',7:'особое',8:'идея'};
+const SPN=['','grow','tree','sprout','cloud','wind','storm','bolt','vortex','volcano','geyser','magnet','charge','neutron','radiation','battery','lamp','laser','engine','robot','rocket','balloon','factory','life','cell','microbe','virus','algae','fungus','crawl','fly','swim','hop','star','comet','fall','bhole','nova','ghost','god','photon'];
+const SP={};SPN.forEach((n,i)=>{if(n)SP[n]=i;});
+const EL=[{id:'',name:'Пустота',emo:'·',ph:0,phc:'',col:0,p:{},grp:'',idx:0}];
+const ID={},GRP=[];
+{let g='';
+EDATA.split('\n').forEach(line=>{line=line.trim();if(!line)return;
+ if(line[0]==='#'){const s=line.slice(1).split(' ');g=s[0];GRP.push({code:g,name:s.slice(1).join(' ')});return;}
+ const a=line.split('|');const p={};
+ if(a[5])a[5].split(';').forEach(kv=>{const b=kv.split('=');p[b[0]]=isNaN(+b[1])?b[1]:+b[1];});
+ ID[a[0]]=EL.length;
+ EL.push({id:a[0],name:a[1],emo:a[2],ph:PH[a[3]],phc:a[3],col:parseInt(a[4],16),p:p,grp:g,idx:EL.length});
+});}
+const M=EL.length;
+const DEF={1:{rho:2400,k:1,cp:.8,ang:1,Lm:150,Lb:800},2:{rho:2400,k:1,cp:.8,ang:1,Lm:150,Lb:800},
+3:{rho:1600,k:.3,cp:.9,ang:.5,Lm:150,Lb:800},4:{rho:1000,k:.6,cp:4.2,visc:1,Lm:150,Lb:800},
+5:{rho:1.2,k:.026,cp:1,visc:.1,Lb:800},6:{rho:.3,k:.5,cp:1,life:90,glow:200,t0:1200},7:{rho:1000,k:0,cp:1},8:{}};
+const P_ph=new Uint8Array(M),P_sp=new Uint8Array(M),P_fluid=new Uint8Array(M),P_aq=new Uint8Array(M),P_grow=new Uint8Array(M),
+P_rho=new Float32Array(M),P_cp=new Float32Array(M),P_alpha=new Float32Array(M),P_tm=new Float32Array(M),P_tb=new Float32Array(M),
+P_Lm=new Float32Array(M),P_Lb=new Float32Array(M),P_ign=new Float32Array(M),P_fuel=new Float32Array(M),P_ec=new Float32Array(M),
+P_ang=new Float32Array(M),P_spread=new Uint8Array(M),P_glow=new Uint16Array(M),P_t0=new Float32Array(M),P_rad=new Float32Array(M),
+P_mag=new Uint8Array(M),P_acid=new Float32Array(M),P_expl=new Uint8Array(M),P_life=new Int16Array(M),
+P_melt=new Uint16Array(M),P_frz=new Uint16Array(M),P_boil=new Uint16Array(M),P_cnd=new Uint16Array(M),P_burn=new Uint16Array(M);
+for(let i=1;i<M;i++){const e=EL[i],d=DEF[e.ph]||{},p=e.p;
+ const g=k=>p[k]!==undefined?p[k]:(d[k]!==undefined?d[k]:0);
+ P_ph[i]=e.ph;P_sp[i]=p.sp?SP[p.sp]||0:0;
+ P_rho[i]=g('rho')||1;P_cp[i]=g('cp')||1;P_tm[i]=g('tm');P_tb[i]=g('tb');
+ P_Lm[i]=g('Lm')||150;P_Lb[i]=g('Lb')||800;P_ign[i]=g('ign');P_fuel[i]=g('fuel');P_ec[i]=g('ec');
+ P_ang[i]=p.ang!==undefined?p.ang:(d.ang!==undefined?d.ang:1);
+ P_spread[i]=Math.max(1,Math.min(6,Math.round(6/(g('visc')||1))));
+ P_glow[i]=g('glow');P_t0[i]=g('t0');P_rad[i]=g('rad');P_mag[i]=g('mag');P_acid[i]=g('acid');P_expl[i]=g('expl');
+ P_life[i]=g('life');
+ P_melt[i]=p.melt?ID[p.melt]:0;P_frz[i]=p.frz?ID[p.frz]:0;P_boil[i]=p.boil?ID[p.boil]:0;P_cnd[i]=p.cnd?ID[p.cnd]:0;P_burn[i]=p.burn?ID[p.burn]:0;
+ const k=g('k');const raw=k/(P_rho[i]*P_cp[i]);
+ P_alpha[i]=k<=0?0:Math.max(.002,Math.min(.045,.002+.12*Math.sqrt(raw)));
+ P_fluid[i]=(e.ph===4||e.ph===5||e.ph===6)?1:(e.ph===7&&P_rho[i]<10?1:0);
+}
+P_rho[0]=1.2;P_alpha[0]=.0197;P_cp[0]=1;
+['wa','rn','dew','riv','lake','sea','milk','blood'].forEach(id=>{P_aq[ID[id]]=1;P_Lm[ID[id]]=334;P_Lb[ID[id]]=2257;});
+['ic','sn','glac','hail','st'].forEach(id=>{P_Lm[ID[id]]=334;P_Lb[ID[id]]=2257;});
+['ic','sn','glac','hail'].forEach(id=>{P_t0[ID[id]]=-12;});
+[SP.grow,SP.tree,SP.sprout,SP.algae,SP.fungus].forEach(s=>{for(let i=1;i<M;i++)if(P_sp[i]===s)P_grow[i]=1;});
+const RM=new Map(),RL=[];
+RDATA.split('\n').forEach(l=>{l=l.trim();if(!l||l[0]==='#')return;
+ const s=l.split('='),ab=s[0].split('+');const a=ID[ab[0]],b=ID[ab[1]],r=ID[s[1]];
+ if(!a||!b||!r)return;RL.push([a,b,r]);RM.set(a<b?a*1024+b:b*1024+a,r);});
+const TOTAL=M-1;
 
-// Звёздный фон (параллакс)
-for(let i = 0; i < 150; i++){
-  stars.push({
-    x: Math.random() * W,
-    y: Math.random() * H,
-    size: Math.random() * 2 + 0.5,
-    speed: Math.random() * 50 + 20
-  });
+/* ============================================================
+   3. МИР: типизированные массивы + спящие чанки
+   ============================================================ */
+const SIZES=[[256,144],[352,208],[448,256]],CS=16,AW=6;
+let W=0,H=0,N=0,CW=0,CH=0,NC=0;
+let tp,T,lf,vx,vy,q,enth,res,mv,lum,aw,cix,noise,bg,px,img,ctx,PAL,TLUT;
+let AMB=20,GRAV=1,WIND=0,SPEED=1,GACC=.136,frame=0,budget=0;
+let paused=false,thermal=false,brush=4,tool=0,sel=ID.wa;
+const cv=document.getElementById('cv'),cur=document.getElementById('cur'),box=document.getElementById('box');
+const DX=[0,0,-1,1],DY=[-1,1,0,0],DDX=[0,-1,1,0,0],DDY=[0,0,0,-1,1],REF=[0,2,1,4,3];
+const disc=new Uint8Array(M);let palDirty=true,showAll=false,slotA=0,slotB=0,newFound=0;
+const KERN={};
+for(let r=2;r<=6;r++){const dx=[],dy=[],f=[];
+ for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){const d2=x*x+y*y;if(d2>r*r)continue;
+  dx.push(x);dy.push(y);f.push(Math.max(0,Math.round(255*(1-Math.sqrt(d2)/(r+1)))));}
+ KERN[r]={dx:Int8Array.from(dx),dy:Int8Array.from(dy),f:Uint8Array.from(f),n:dx.length};}
+
+function alloc(w,h){
+ W=w;H=h;N=w*h;CW=w/CS;CH=h/CS;NC=CW*CH;
+ tp=new Uint16Array(N);T=new Float32Array(N);lf=new Int16Array(N);vx=new Int8Array(N);vy=new Float32Array(N);
+ q=new Float32Array(N);enth=new Float32Array(N);res=new Uint16Array(N);mv=new Uint8Array(N);lum=new Uint8Array(N);
+ aw=new Uint8Array(NC);cix=new Uint16Array(N);noise=new Uint8Array(N);bg=new Uint32Array(N);
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x;cix[i]=(y/CS|0)*CW+(x/CS|0);noise[i]=(Math.random()*4)|0;T[i]=AMB;}
+ cv.width=W;cv.height=H;ctx=cv.getContext('2d',{alpha:false});
+ img=ctx.createImageData(W,H);px=new Uint32Array(img.data.buffer);
+ box.style.aspectRatio=W+'/'+H;
+ buildBg();fit();
+}
+function buildBg(){
+ for(let y=0;y<H;y++){const t=y/H;const r=(9+t*7)|0,g=(12+t*10)|0,b=(22+t*18)|0;
+  for(let x=0;x<W;x++){const n=((x*7+y*13)%5)-2;bg[y*W+x]=(255<<24)|((b+n)<<16)|((g+n)<<8)|(r+n);}}
+}
+function buildPal(){
+ PAL=new Uint32Array(M*4);
+ for(let i=0;i<M;i++){const c=EL[i].col,r=(c>>16)&255,g=(c>>8)&255,b=c&255;
+  for(let k=0;k<4;k++){const f=.88+k*.075;
+   PAL[(i<<2)|k]=(255<<24)|(Math.min(255,b*f|0)<<16)|(Math.min(255,g*f|0)<<8)|Math.min(255,r*f|0);}}
+ TLUT=new Uint32Array(256);
+ for(let i=0;i<256;i++){const t=i/255;let r,g,b;
+  if(t<.25){r=0;g=t*4*200;b=120+t*4*135;}
+  else if(t<.5){r=0;g=200;b=255-(t-.25)*4*255;}
+  else if(t<.75){r=(t-.5)*4*255;g=220;b=0;}
+  else{r=255;g=220-(t-.75)*4*180;b=(t-.75)*4*220;}
+  TLUT[i]=(255<<24)|((b|0)<<16)|((g|0)<<8)|(r|0);}
+}
+function fit(){
+ const wrap=document.getElementById('wrap');const aw2=wrap.clientWidth,ah2=wrap.clientHeight;
+ const s=Math.min(aw2/W,ah2/H);box.style.width=(W*s|0)+'px';box.style.height=(H*s|0)+'px';
+}
+addEventListener('resize',fit);
+
+function wake(i){const c=cix[i];aw[c]=AW;
+ if(i>0)aw[cix[i-1]]=AW;if(i<N-1)aw[cix[i+1]]=AW;if(i>=W)aw[cix[i-W]]=AW;if(i<N-W)aw[cix[i+W]]=AW;}
+function set(i,t,tt){
+ tp[i]=t;T[i]=tt===undefined?(P_t0[t]||AMB):tt;lf[i]=P_life[t];vx[i]=0;vy[i]=0;q[i]=0;enth[i]=0;res[i]=0;mv[i]=1;
+ if(P_grow[t])lf[i]=5+(Math.random()*5|0);
+ wake(i);if(t&&!disc[t])unlock(t);
+}
+function swap(i,j){
+ let a=tp[i];tp[i]=tp[j];tp[j]=a;
+ let b=T[i];T[i]=T[j];T[j]=b;
+ let c=lf[i];lf[i]=lf[j];lf[j]=c;
+ let d=vx[i];vx[i]=vx[j];vx[j]=d;
+ let e=vy[i];vy[i]=vy[j];vy[j]=e;
+ let f=q[i];q[i]=q[j];q[j]=f;
+ let g=enth[i];enth[i]=enth[j];enth[j]=g;
+ let h=res[i];res[i]=res[j];res[j]=h;
+ mv[j]=1;wake(i);wake(j);
+}
+function nb(i,x,y,k){const nx=x+DX[k],ny=y+DY[k];return(nx<0||nx>=W||ny<0||ny>=H)?-1:ny*W+nx;}
+function stepDir(i,d){const x=i%W,y=i/W|0,nx=x+DDX[d],ny=y+DDY[d];return(nx<0||nx>=W||ny<0||ny>=H)?-1:ny*W+nx;}
+function rhoAt(i){const t=tp[i];
+ if(t){const ph=P_ph[t];if(ph!==5&&ph!==6)return P_rho[t];}
+ const r=t?P_rho[t]:1.2,f=1-(T[i]-20)*.0034;return r*(f<.05?.05:f);}
+function canMove(i,j,dir){
+ if(j<0)return false;const b=tp[j];
+ if(b!==0&&!P_fluid[b])return false;
+ const r1=rhoAt(i),r2=rhoAt(j);
+ if(dir>0)return r2<r1*.98;
+ if(dir<0)return r2>r1*1.02;
+ return b===0||r2<r1*.9;
+}
+function hasOx(i,x,y){for(let k=0;k<4;k++){const j=nb(i,x,y,k);if(j<0)continue;const u=tp[j];
+ if(u===0||u===ID.ox||u===ID.ai||u===ID.atm)return true;}return false;}
+function die(i,t){
+ if(P_cnd[t]){set(i,P_cnd[t],P_tb[t]);return;}
+ if(t===ID.fi||t===ID.met){const r=res[i];
+  if(r&&Math.random()<.6)set(i,r);else if(Math.random()<.45)set(i,ID.sm);else set(i,0);return;}
+ set(i,0);
+}
+function ignite(i){
+ const t=tp[i],f=P_fuel[t];
+ if(P_expl[t]){boom(i,5+5*P_expl[t],f);return;}
+ const b=P_burn[t];set(i,ID.fi);res[i]=b;lf[i]=25+(f/45|0);T[i]=Math.max(T[i],P_t0[ID.fi]);
+}
+function boom(i,r,pw){
+ if(r>18)r=18;const x=i%W,y=i/W|0;
+ for(let dy=-r;dy<=r;dy++){const ny=y+dy;if(ny<0||ny>=H)continue;
+  for(let dx=-r;dx<=r;dx++){const nx=x+dx;if(nx<0||nx>=W)continue;
+   const d2=dx*dx+dy*dy;if(d2>r*r)continue;
+   const j=ny*W+nx,d=Math.sqrt(d2)+.6,f=1-d/r,t=tp[j];
+   T[j]+=pw*.015*f;
+   if(t){const ph=P_ph[t];
+    if(ph===1){if(Math.random()<f*.5)set(j,ID.du);}
+    else{vx[j]=Math.max(-7,Math.min(7,vx[j]+Math.round(dx/d*f*6)));
+         vy[j]=Math.max(-7,Math.min(7,vy[j]+Math.round(dy/d*f*6)));}}
+   if(d<2.2&&Math.random()<.7)set(j,ID.fi);
+   else if(Math.random()<f*.2)set(j,ID.sm);
+   wake(j);}}
+}
+function fission(j){
+ T[j]+=6000;boom(j,5,3000);set(j,ID.rad);unlock(ID.fis);
+ for(let k=0;k<4;k++){const n=nb(j,j%W,j/W|0,k);if(n>=0&&tp[n]===0&&Math.random()<.7)set(n,ID.neut);}
+}
+function radial(i,x,y,r,fn){
+ budget-=r*r*4;if(budget<0)return;
+ for(let dy=-r;dy<=r;dy++){const ny=y+dy;if(ny<0||ny>=H)continue;
+  for(let dx=-r;dx<=r;dx++){const nx=x+dx;if(nx<0||nx>=W)continue;
+   const d2=dx*dx+dy*dy;if(d2>r*r)continue;fn(ny*W+nx,dx,dy,d2);}}
 }
 
-// Управление
-addEventListener('keydown', e => {
-  keys[e.code] = true;
-  if(e.code === 'KeyR' && gameOver) restart();
-  if(['Space','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
-});
-addEventListener('keyup', e => keys[e.code] = false);
-
-function restart(){
-  score = 0; lives = 3; wave = 1; gameOver = false;
-  player.x = W/2; player.y = H - 80; player.power = 1; player.invincible = 0;
-  bullets = []; enemies = []; particles = []; powerups = [];
-  spawnTimer = 0; waveTimer = 0; enemiesInWave = 0;
-  updateUI();
+/* ---------- контактные реакции (химия в мире) ---------- */
+function react(i,j,t){
+ const u=tp[j];if(!u)return;const A=ID;
+ if(P_aq[t]){
+  if(u===A.fi){lf[j]-=25;T[i]+=8;if(Math.random()<.22)set(i,A.st);return;}
+  if(u===A.la){set(j,A.ro);set(i,A.st);return;}
+  if(u===A.salt&&Math.random()<.3){set(j,0);set(i,A.sea);return;}
+  if(u===A.sugar&&Math.random()<.2){set(j,0);return;}
+  if(u===A.ink&&Math.random()<.2){set(j,0);return;}
+  if(u===A.co&&Math.random()<.04){set(j,0);set(i,A.acid);return;}
+  if(u===A.soil&&Math.random()<.05){set(j,A.mu);return;}
+  if(u===A.ah&&Math.random()<.1){set(j,0);set(i,A.alk);return;}
+  if(u===A.sm&&Math.random()<.05){set(j,0);set(i,A.ink);return;}
+  if(u===A.iron&&Math.random()<.004){set(j,A.rust);return;}
+  return;}
+ if(P_acid[t]){
+  if(u===A.alk){set(i,A.wa);set(j,A.salt);return;}
+  if(u===A.iron||u===A.alu||u===A.steel){if(Math.random()<.2){set(j,A.hy);if(Math.random()<.3)set(i,0);}return;}
+  const ph=P_ph[u];
+  if((ph===1||ph===2||ph===3)&&u!==A.gl&&u!==A.dia&&Math.random()<.14){set(j,ph===2?A.sa:0);if(Math.random()<.25)set(i,0);}
+  return;}
+ if(t===A.alk){
+  if(u===A.oil||u===A.wax){if(Math.random()<.2){set(j,A.soap);set(i,A.wa);}return;}
+  if(u===A.acid){set(i,A.salt);set(j,A.wa);}return;}
+ if(t===A.salt&&(u===A.ic||u===A.sn)){T[j]-=8;if(T[j]>-21&&Math.random()<.2){set(j,A.wa);set(i,0);}return;}
+ if(t===A.co&&lum[i]>25&&P_grow[u]&&Math.random()<.1){set(i,A.ox);return;}
+ if(t===A.iron&&u===A.ox&&Math.random()<.02){set(i,A.rust);set(j,0);return;}
+ if(t===A.rust&&u===A.fi&&Math.random()<.1){set(i,A.iron);return;}
+ if(t===A.sa&&u===A.lt){set(i,A.gl);return;}
+ if(t===A.cl&&u===A.fi&&Math.random()<.04){set(i,A.brick);return;}
+ if(t===A.st&&(u===A.ic||u===A.sn)){set(i,A.wa);return;}
+ if(t===A.life&&P_aq[u]&&Math.random()<.05){set(j,A.cell);return;}
+ if(t===A.poi){const s=P_sp[u];if((s===SP.life||s===SP.cell||s===SP.swim||s===SP.fly||s===SP.crawl||s===SP.hop)&&Math.random()<.2)set(j,0);return;}
+ if(t===A.med&&(u===A.vir||u===A.bact)&&Math.random()<.2){set(j,0);return;}
+ if(t===A.fert&&P_grow[u]&&Math.random()<.1){lf[j]+=3;return;}
 }
 
-// Создание частиц (взрыв)
-function createExplosion(x, y, color, count = 20){
-  for(let i = 0; i < count; i++){
-    const angle = Math.random() * Math.PI * 2;
-    const speed = Math.random() * 200 + 100;
-    particles.push({
-      x, y,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      life: 1,
-      decay: Math.random() * 0.5 + 0.5,
-      size: Math.random() * 3 + 2,
-      color
-    });
-  }
+/* ---------- scripted-поведение (38 скриптов) ---------- */
+function script(i,x,y,t,sp){
+ const A=ID;
+ switch(sp){
+ case SP.grow:{
+  if(lf[i]>0&&Math.random()<.05&&lum[i]>25){const up=nb(i,x,y,0);
+   if(up>=0&&tp[up]===0){set(up,t);lf[up]=lf[i]-1;lf[i]=0;}}
+  if(Math.random()<.03){const dn=nb(i,x,y,1),up=nb(i,x,y,0);
+   if(dn>=0&&up>=0&&P_aq[tp[dn]]&&tp[up]===0){set(up,A.wa);set(dn,0);}}
+  return true;}
+ case SP.tree:{
+  if(lf[i]>0&&Math.random()<.09){const up=nb(i,x,y,0);
+   if(up>=0&&tp[up]===0){set(up,lf[i]>3?A.tree:A.leaf);lf[up]=lf[i]-1;lf[i]=0;}}
+  if(lf[i]<=0&&Math.random()<.003){const j=nb(i,x,y,(Math.random()*4)|0);
+   if(j>=0&&tp[j]===0)set(j,Math.random()<.25?A.fruit:A.leaf);}
+  return true;}
+ case SP.sprout:{
+  const dn=nb(i,x,y,1);
+  if(dn>=0){const b=tp[dn];
+   if(b===A.soil||b===A.mu||b===A.gr||b===A.hum||b===A.fert){set(i,A.tree);lf[i]=7+(Math.random()*6|0);return true;}}
+  return false;}
+ case SP.cloud:{
+  if(Math.random()<.004){const dn=nb(i,x,y,1);if(dn>=0&&tp[dn]===0)set(dn,T[i]<2?A.sn:A.rn);}
+  gasMove(i,x,y,t,5);return true;}
+ case SP.wind:{
+  let d=vx[i]||1;
+  for(let s=0;s<3;s++){const nx=x+d;if(nx<0||nx>=W)break;const j=i+d;
+   if(tp[j]===0){swap(i,j);i=j;x=nx;}
+   else{const ph=P_ph[tp[j]];if(ph===3||ph===5||ph===2){vx[j]=Math.max(-6,Math.min(6,vx[j]+d*2));wake(j);}break;}}
+  return true;}
+ case SP.storm:{
+  if(Math.random()<.006){const dn=nb(i,x,y,1);
+   if(dn>=0&&tp[dn]===0){if(Math.random()<.3){set(dn,A.lt);q[dn]=255;}else set(dn,A.rn);}}
+  gasMove(i,x,y,t,5);return true;}
+ case SP.bolt:{
+  T[i]=9000;let best=-1,bs=-1;
+  const cand=[[0,1],[-1,1],[1,1],[-1,0],[1,0]];
+  for(let k=0;k<5;k++){const nx=x+cand[k][0],ny=y+cand[k][1];
+   if(nx<0||nx>=W||ny<0||ny>=H)continue;const j=ny*W+nx,u=tp[j];
+   let s=Math.random()*2+(u===0?1:0)+P_ec[u]*3+(q[j]>10?2:0)+(cand[k][1]>0?1:0);
+   if(P_ph[u]===1&&P_ec[u]<=0)s-=2;
+   if(s>bs){bs=s;best=j;}}
+  if(best>=0){const u=tp[best];
+   if(P_ign[u]>0)ignite(best);
+   T[best]+=2500;set(best,A.lt);q[best]=255;lf[best]=lf[i]>1?lf[i]-1:1;}
+  return true;}
+ case SP.vortex:{
+  radial(i,x,y,7,(j,dx,dy,d2)=>{if(d2<1)return;const u=tp[j];if(!u||P_ph[u]===1)return;
+   const f=1.4/Math.sqrt(d2);
+   vx[j]=Math.max(-6,Math.min(6,vx[j]+Math.round((-dy*.7-dx*.3)*f)));
+   vy[j]=Math.max(-6,Math.min(6,vy[j]+Math.round((dx*.7-dy*.4)*f)));wake(j);});
+  gasMove(i,x,y,t,5);return true;}
+ case SP.volcano:{
+  if(Math.random()<.025){const up=nb(i,x,y,0);
+   if(up>=0&&(tp[up]===0||P_ph[tp[up]]===5)){set(up,A.la);vy[up]=-3;}
+   if(Math.random()<.4&&up>=0&&tp[up]===0)set(up,A.sm);}
+  return true;}
+ case SP.geyser:{
+  if(Math.random()<.05){const up=nb(i,x,y,0);if(up>=0&&tp[up]===0){set(up,A.st,150);vy[up]=-4;}}
+  return true;}
+ case SP.magnet:{
+  radial(i,x,y,10,(j,dx,dy,d2)=>{if(!P_mag[tp[j]])return;const f=7/(d2+2);
+   vx[j]=Math.max(-6,Math.min(6,vx[j]-Math.round(dx*f)));
+   vy[j]=Math.max(-6,Math.min(6,vy[j]-Math.round(dy*f)));wake(j);});
+  return true;}
+ case SP.charge:{
+  q[i]=200;const j=nb(i,x,y,(Math.random()*4)|0);
+  if(j>=0){if(P_ec[tp[j]]>0){q[j]=Math.max(q[j],200);wake(j);}if(tp[j]===0)swap(i,j);}
+  return true;}
+ case SP.neutron:{
+  const j=nb(i,x,y,(Math.random()*4)|0);
+  if(j>=0){if(tp[j]===A.ur){fission(j);set(i,0);return true;}if(tp[j]===0)swap(i,j);}
+  return true;}
+ case SP.radiation:{
+  const j=nb(i,x,y,(Math.random()*4)|0);
+  if(j>=0){const u=tp[j];
+   if(u===0)swap(i,j);
+   else{T[j]+=20;const s=P_sp[u];
+    if(s===SP.life||s===SP.cell||s===SP.microbe||s===SP.swim||s===SP.fly){if(Math.random()<.3)set(j,0);}
+    else if(Math.random()<.04)set(j,A.ion);}}
+  return true;}
+ case SP.battery:{
+  if(frame%6===0)for(let k=0;k<4;k++){const j=nb(i,x,y,k);if(j>=0&&P_ec[tp[j]]>0){q[j]=220;wake(j);}}
+  return true;}
+ case SP.lamp:return true;
+ case SP.laser:{
+  let d=res[i]||2;
+  for(let s=0;s<3;s++){const j=stepDir(i,d);
+   if(j<0){set(i,0);return true;}
+   const u=tp[j];
+   if(u===0){swap(i,j);res[j]=d;i=j;}
+   else if(u===A.mir){res[i]=REF[d];d=REF[d];}
+   else{T[j]+=500;if(P_ign[u]>0)ignite(j);set(i,0);return true;}}
+  return true;}
+ case SP.photon:{
+  let d=res[i];if(!d){d=1+(Math.random()*4|0);res[i]=d;}
+  for(let s=0;s<4;s++){const j=stepDir(i,d);
+   if(j<0){set(i,0);return true;}
+   const u=tp[j];
+   if(u===0){swap(i,j);res[j]=d;i=j;}
+   else if(u===A.mir){res[i]=REF[d];d=REF[d];}
+   else if(u===A.prism){unlock(A.color);T[j]+=10;set(i,0);return true;}
+   else{T[j]+=25;set(i,0);return true;}}
+  return true;}
+ case SP.engine:{
+  if(q[i]>8||T[i]>150){for(let k=2;k<4;k++){const j=nb(i,x,y,k);
+    if(j>=0&&tp[j]&&P_ph[tp[j]]!==1){vx[j]=Math.max(-6,Math.min(6,vx[j]+DX[k]*2));wake(j);}}
+   if(Math.random()<.04){const up=nb(i,x,y,0);if(up>=0&&tp[up]===0)set(up,A.sm);}}
+  return true;}
+ case SP.robot:{
+  if(q[i]>5&&Math.random()<.3){const d=Math.random()<.5?-1:1,nx=x+d;
+   if(nx>=0&&nx<W){const j=i+d;if(tp[j]===0){swap(i,j);return true;}}}
+  return true;}
+ case SP.rocket:{
+  if(T[i]>200||q[i]>10){const up=nb(i,x,y,0);
+   if(up>=0&&tp[up]===0){swap(i,up);const dn=nb(i,x,y,1);if(dn>=0&&tp[dn]===0)set(dn,A.fi);}}
+  return true;}
+ case SP.balloon:gasMove(i,x,y,t,5);return true;
+ case SP.factory:{
+  if(q[i]>8&&Math.random()<.05){const up=nb(i,x,y,0);if(up>=0&&tp[up]===0)set(up,A.sm);T[i]+=15;}
+  return true;}
+ case SP.life:{
+  if(Math.random()<.05&&lum[i]>15){const j=nb(i,x,y,(Math.random()*4)|0);
+   if(j>=0){const u=tp[j];
+    if(P_aq[u])set(j,A.cell);
+    else if(u===A.soil||u===A.mu||u===A.hum)set(j,A.life);}}
+  if((T[i]<-5||T[i]>65)&&Math.random()<.05)set(i,0);
+  return true;}
+ case SP.cell:{
+  if(T[i]>4&&T[i]<45&&Math.random()<.03){const j=nb(i,x,y,(Math.random()*4)|0);if(j>=0&&P_aq[tp[j]])set(j,A.cell);}
+  else if((T[i]>60||T[i]<-8)&&Math.random()<.05)set(i,0);
+  return true;}
+ case SP.microbe:{
+  const j=nb(i,x,y,(Math.random()*4)|0);
+  if(j>=0){const u=tp[j];
+   if(u===A.sugar)set(j,A.alc);
+   else if(u===A.fruit&&Math.random()<.06)set(j,A.alc);
+   else if((P_aq[u]||u===A.milk)&&Math.random()<.08)set(j,A.bact);}
+  if(T[i]>70&&Math.random()<.1)set(i,0);
+  return true;}
+ case SP.virus:{
+  const j=nb(i,x,y,(Math.random()*4)|0);
+  if(j>=0){const u=tp[j];if((u===A.cell||u===A.life||u===A.bact)&&Math.random()<.2)set(j,A.vir);}
+  if(Math.random()<.01)set(i,0);
+  return true;}
+ case SP.algae:{
+  if(lum[i]>20&&Math.random()<.02){const j=nb(i,x,y,(Math.random()*4)|0);
+   if(j>=0){if(P_aq[tp[j]])set(j,A.algae);else if(tp[j]===A.co)set(j,A.ox);}}
+  return false;}
+ case SP.fungus:{
+  if(lum[i]<50&&Math.random()<.02){const j=nb(i,x,y,(Math.random()*4)|0);
+   if(j>=0){const u=tp[j];if(u===A.wd||u===A.soil||u===A.hum)set(j,A.mush);}}
+  return true;}
+ case SP.crawl:{
+  if(Math.random()<.4){const d=Math.random()<.5?-1:1,nx=x+d;
+   if(nx>=0&&nx<W){const j=i+d;if(tp[j]===0){swap(i,j);return true;}}}
+  granular(i,x,y,t,2);return true;}
+ case SP.fly:{
+  const j=nb(i,x,y,(Math.random()*4)|0);
+  if(j>=0){const u=tp[j];
+   if(u===0){if(Math.random()<.75)swap(i,j);}
+   else if(u===A.flw&&t===A.bee&&Math.random()<.05)set(j,A.honey);
+   else if(P_ph[u]===4&&Math.random()<.1)set(i,0);}
+  return true;}
+ case SP.swim:{
+  const j=nb(i,x,y,(Math.random()*4)|0);
+  if(j>=0){const u=tp[j];
+   if(P_ph[u]===4)swap(i,j);
+   else if(u===0&&Math.random()<.02)set(i,0);}
+  return true;}
+ case SP.hop:{
+  if(Math.random()<.15){const up=nb(i,x,y,0);if(up>=0&&tp[up]===0){swap(i,up);return true;}}
+  const j=nb(i,x,y,(Math.random()*4)|0);
+  if(j>=0&&P_ph[tp[j]]===4){swap(i,j);return true;}
+  granular(i,x,y,t,2);return true;}
+ case SP.star:{
+  T[i]=P_t0[t];
+  const j=nb(i,x,y,(Math.random()*4)|0);
+  if(j>=0&&tp[j]===A.hy){set(j,A.hl);T[i]+=200;unlock(A.fus);}
+  radial(i,x,y,8,(jj,dx,dy,d2)=>{if(d2<2)return;const u=tp[jj];if(!u||P_ph[u]!==5)return;
+   const f=5/(d2+2);vx[jj]=Math.max(-5,Math.min(5,vx[jj]-Math.round(dx*f)));
+   vy[jj]=Math.max(-5,Math.min(5,vy[jj]-Math.round(dy*f)));wake(jj);});
+  return true;}
+ case SP.comet:{
+  vy[i]=Math.min(vy[i]+GACC*1.5,8);
+  if(Math.random()<.3){const up=nb(i,x,y,0);if(up>=0&&tp[up]===0)set(up,A.st);}
+  return false;}
+ case SP.fall:{
+  vy[i]=Math.min(vy[i]+GACC*1.6,8);
+  const dn=nb(i,x,y,1);
+  if(dn>=0){const u=tp[dn];
+   if(u!==0&&P_ph[u]!==5&&P_ph[u]!==4){boom(i,6,2500);set(i,A.mt2);return true;}}
+  return false;}
+ case SP.bhole:{
+  radial(i,x,y,14,(j,dx,dy,d2)=>{const u=tp[j];if(!u)return;
+   if(d2<4){set(j,0);lf[i]++;return;}
+   const f=Math.min(6,60/(d2+2));
+   vx[j]=Math.max(-6,Math.min(6,vx[j]-Math.round(dx*f)));
+   vy[j]=Math.max(-6,Math.min(6,vy[j]-Math.round(dy*f)));wake(j);});
+  if(Math.random()<.02){const j=nb(i,x,y,(Math.random()*4)|0);if(j>=0&&tp[j]===0)set(j,A.rad);}
+  return true;}
+ case SP.nova:{boom(i,17,20000);unlock(A.nova);set(i,A.neb);return true;}
+ case SP.ghost:{
+  const j=nb(i,x,y,(Math.random()*4)|0);
+  if(j>=0&&(tp[j]===0||P_ph[tp[j]]===5))swap(i,j);
+  return true;}
+ case SP.god:{
+  T[i]=Math.max(T[i],600);
+  radial(i,x,y,12,(j,dx,dy,d2)=>{const u=tp[j];
+   if(u===A.sm||u===A.ah||u===A.du||u===A.co)set(j,A.ai);
+   else if(u===A.la)set(j,A.ro);
+   else if(u===A.poi||u===A.rad||u===A.vir)set(j,A.wa);
+   else if(u===0&&lum[j]>60&&Math.random()<.002)set(j,Math.random()<.5?A.life:A.flw);});
+  return true;}
+ }
+ return false;
 }
 
-// Спавн врагов
-function spawnEnemy(){
-  const type = Math.random();
-  let enemy;
-  
-  if(type < 0.6){ // Обычный
-    enemy = {
-      x: Math.random() * (W - 40) + 20,
-      y: -40,
-      w: 30, h: 30,
-      vx: (Math.random() - 0.5) * 100,
-      vy: 80 + wave * 10,
-      hp: 1,
-      color: '#f00',
-      points: 10,
-      shootTimer: Math.random() * 2
-    };
-  } else if(type < 0.9){ // Быстрый
-    enemy = {
-      x: Math.random() * (W - 30) + 15,
-      y: -30,
-      w: 25, h: 25,
-      vx: (Math.random() - 0.5) * 200,
-      vy: 150 + wave * 15,
-      hp: 1,
-      color: '#ff0',
-      points: 20,
-      shootTimer: Math.random() * 3
-    };
-  } else { // Танк
-    enemy = {
-      x: Math.random() * (W - 50) + 25,
-      y: -50,
-      w: 40, h: 40,
-      vx: (Math.random() - 0.5) * 60,
-      vy: 50 + wave * 5,
-      hp: 3,
-      maxHp: 3,
-      color: '#f0f',
-      points: 50,
-      shootTimer: Math.random() * 2
-    };
-  }
-  
-  enemies.push(enemy);
+/* ---------- движение по фазам ---------- */
+function granular(i,x,y,t,ph){
+ let v=vx[i];
+ if(v){const d=v>0?1:-1,nx=x+d;
+  if(nx>=0&&nx<W){const j=i+d;if(canMove(i,j,0)){swap(i,j);vx[j]=v-d;i=j;x=nx;}else vx[i]=0;}else vx[i]=0;}
+ let vv=vy[i]+GACC;if(vv>6)vv=6;
+ let n=vv|0;if(Math.random()<vv-n)n++;
+ let cy=y,blocked=false;
+ for(let s=0;s<n;s++){
+  if(cy+1>=H){blocked=true;break;}
+  const j=i+W;
+  if(canMove(i,j,1)){swap(i,j);i=j;cy++;}else{blocked=true;break;}}
+ vy[i]=blocked?0:vv;
+ if(blocked&&ph===3&&Math.random()>P_ang[t]){
+  const d=Math.random()<.5?-1:1,nx=x+d;
+  if(nx>=0&&nx<W&&cy+1<H){const s1=i+d,s2=i+d+W;
+   if(canMove(i,s1,0)&&canMove(i,s2,1)){swap(i,s2);vy[s2]=1;}}}
 }
-
-// Стрельба игрока
-function playerShoot(){
-  if(player.cooldown > 0) return;
-  
-  if(player.power === 1){
-    bullets.push({
-      x: player.x, y: player.y - 20,
-      vx: 0, vy: -500,
-      w: 4, h: 15,
-      friendly: true,
-      color: '#0ff'
-    });
-  } else if(player.power === 2){
-    bullets.push({
-      x: player.x - 10, y: player.y - 15,
-      vx: 0, vy: -500,
-      w: 4, h: 15,
-      friendly: true,
-      color: '#0ff'
-    });
-    bullets.push({
-      x: player.x + 10, y: player.y - 15,
-      vx: 0, vy: -500,
-      w: 4, h: 15,
-      friendly: true,
-      color: '#0ff'
-    });
-  } else {
-    bullets.push({
-      x: player.x - 15, y: player.y - 10,
-      vx: -50, vy: -500,
-      w: 4, h: 15,
-      friendly: true,
-      color: '#0ff'
-    });
-    bullets.push({
-      x: player.x, y: player.y - 20,
-      vx: 0, vy: -500,
-      w: 4, h: 15,
-      friendly: true,
-      color: '#0ff'
-    });
-    bullets.push({
-      x: player.x + 15, y: player.y - 10,
-      vx: 50, vy: -500,
-      w: 4, h: 15,
-      friendly: true,
-      color: '#0ff'
-    });
-  }
-  
-  player.cooldown = player.fireRate;
+function liquid(i,x,y,t){
+ let v=vx[i];
+ if(v){const d=v>0?1:-1,nx=x+d;
+  if(nx>=0&&nx<W){const j=i+d;if(canMove(i,j,0)){swap(i,j);vx[j]=v-d;i=j;x=nx;}else vx[i]=0;}else vx[i]=0;}
+ let vv=vy[i]+GACC;if(vv>8)vv=8;
+ let n=vv|0;if(Math.random()<vv-n)n++;
+ let cy=y,blocked=false;
+ for(let s=0;s<n;s++){
+  if(cy+1>=H){blocked=true;break;}
+  const j=i+W;
+  if(canMove(i,j,1)){swap(i,j);i=j;cy++;}else{blocked=true;break;}}
+ vy[i]=blocked?0:vv;
+ if(!blocked)return;
+ const sp=P_spread[t];
+ for(let side=0;side<2;side++){
+  const d=side===0?(Math.random()<.5?-1:1):0;
+  if(side===1){if(!vx[i]&&!vy[i]){} }
+  const dir=side===0?d:-d;if(side===1&&d===0)continue;
+  let target=-1;
+  for(let s=1;s<=sp;s++){
+   const nx=x+dir*s;if(nx<0||nx>=W)break;const j=i+dir*s;
+   if(!canMove(i,j,0))break;
+   target=j;
+   if(cy+1<H&&canMove(j,j+W,1))break;}
+  if(target>=0){swap(i,target);return;}
+  if(side===0&&d!==0)continue;else break;}
 }
-
-// Стрельба врагов
-function enemyShoot(enemy){
-  bullets.push({
-    x: enemy.x, y: enemy.y + enemy.h/2,
-    vx: 0, vy: 300,
-    w: 4, h: 12,
-    friendly: false,
-    color: '#f00'
-  });
+function gasMove(i,x,y,t,ph){
+ if(WIND&&Math.random()<Math.abs(WIND)*.45){
+  const d=WIND>0?1:-1,nx=x+d;
+  if(nx>=0&&nx<W){const j=i+d;if(canMove(i,j,0)){swap(i,j);return;}}}
+ let v=vx[i];
+ if(v){const d=v>0?1:-1,nx=x+d;
+  if(nx>=0&&nx<W){const j=i+d;if(canMove(i,j,0)){swap(i,j);vx[j]=v-d;return;}else vx[i]=0;}}
+ if(y>0&&canMove(i,i-W,-1)&&Math.random()<.75){swap(i,i-W);return;}
+ if(Math.random()<.5){const j=nb(i,x,y,(Math.random()*4)|0);if(j>=0&&canMove(i,j,0))swap(i,j);}
 }
-
-// Спавн бонусов
-function spawnPowerup(x, y){
-  if(Math.random() < 0.15){ // 15% шанс
-    const types = ['power', 'life'];
-    const type = types[Math.floor(Math.random() * types.length)];
-    powerups.push({
-      x, y,
-      vy: 100,
-      type,
-      size: 15,
-      rotation: 0
-    });
-  }
+function airCell(i,x,y){
+ const t=T[i];
+ if(t>AMB+3&&y>0&&tp[i-W]===0&&T[i-W]<t-1){const a=T[i];T[i]=T[i-W];T[i-W]=a;wake(i);wake(i-W);}
+ if(q[i]>150){set(i,ID.lt);q[i]=255;}
 }
-
-// Коллизия прямоугольников
-function rectCollision(a, b){
-  return a.x - a.w/2 < b.x + b.w/2 &&
-         a.x + a.w/2 > b.x - b.w/2 &&
-         a.y - a.h/2 < b.y + b.h/2 &&
-         a.y + a.h/2 > b.y - b.h/2;
+function upd(i,x,y){
+ if(!aw[cix[i]]||mv[i])return;
+ const t=tp[i];
+ if(!t){airCell(i,x,y);return;}
+ if(P_life[t]>0&&--lf[i]<=0){die(i,t);return;}
+ const j=nb(i,x,y,(Math.random()*4)|0);
+ if(j>=0)react(i,j,t);
+ if(tp[i]!==t)return;
+ if(P_rad[t]&&Math.random()<P_rad[t]*.002){
+  const n=nb(i,x,y,(Math.random()*4)|0);if(n>=0&&tp[n]===0)set(n,ID.rad);T[i]+=25;}
+ if(P_ign[t]>0&&T[i]>=P_ign[t]&&hasOx(i,x,y)){ignite(i);return;}
+ if(P_ph[t]===6&&T[i]<P_t0[t])T[i]=P_t0[t];
+ const sp=P_sp[t];
+ if(sp&&script(i,x,y,t,sp))return;
+ const ph=P_ph[t];
+ if(ph===2||ph===3)granular(i,x,y,t,ph);
+ else if(ph===4)liquid(i,x,y,t);
+ else if(ph===5||ph===6)gasMove(i,x,y,t,ph);
 }
-
-// Обновление UI
-function updateUI(){
-  document.getElementById('score').textContent = 'СЧЁТ: ' + score;
-  document.getElementById('lives').textContent = '♥'.repeat(lives);
-  document.getElementById('wave').textContent = 'ВОЛНА ' + wave;
+function phase(i,t){
+ const tt=T[i];
+ if(P_melt[t]&&tt>P_tm[t]){const need=P_Lm[t]/P_cp[t];enth[i]+=tt-P_tm[t];T[i]=P_tm[t];
+  if(enth[i]>=need)set(i,P_melt[t],P_tm[t]);return;}
+ if(P_frz[t]&&tt<P_tm[t]){const need=P_Lm[t]/P_cp[t];enth[i]+=P_tm[t]-tt;T[i]=P_tm[t];
+  if(enth[i]>=need)set(i,P_frz[t],P_tm[t]);return;}
+ if(P_boil[t]&&tt>P_tb[t]){const need=P_Lb[t]/P_cp[t];enth[i]+=tt-P_tb[t];T[i]=P_tb[t];
+  if(enth[i]>=need)set(i,P_boil[t],P_tb[t]);return;}
+ if(P_cnd[t]&&tt<P_tb[t]){const need=P_Lb[t]/P_cp[t];enth[i]+=P_tb[t]-tt;T[i]=P_tb[t];
+  if(enth[i]>=need)set(i,P_cnd[t],P_tb[t]);return;}
+ if(enth[i]>0)enth[i]*=.995;
 }
-
-// Основной цикл обновления
-function update(dt){
-  if(gameOver) return;
-  
-  // Звёзды
-  for(const star of stars){
-    star.y += star.speed * dt;
-    if(star.y > H){
-      star.y = 0;
-      star.x = Math.random() * W;
-    }
-  }
-  
-  // Игрок
-  if(keys.ArrowLeft || keys.KeyA) player.x -= player.speed * dt;
-  if(keys.ArrowRight || keys.KeyD) player.x += player.speed * dt;
-  player.x = Math.max(player.w/2, Math.min(W - player.w/2, player.x));
-  
-  if(keys.Space) playerShoot();
-  player.cooldown -= dt;
-  player.invincible -= dt;
-  
-  // Пули
-  for(let i = bullets.length - 1; i >= 0; i--){
-    const b = bullets[i];
-    b.x += b.vx * dt;
-    b.y += b.vy * dt;
-    
-    if(b.y < -20 || b.y > H + 20 || b.x < -20 || b.x > W + 20){
-      bullets.splice(i, 1);
-    }
-  }
-  
-  // Враги
-  spawnTimer -= dt;
-  if(spawnTimer <= 0 && enemiesInWave < 5 + wave * 2){
-    spawnEnemy();
-    enemiesInWave++;
-    spawnTimer = 1.5 - wave * 0.1;
-  }
-  
-  // Переход на следующую волну
-  if(enemiesInWave >= 5 + wave * 2 && enemies.length === 0){
-    waveTimer += dt;
-    if(waveTimer > 2){
-      wave++;
-      enemiesInWave = 0;
-      waveTimer = 0;
-      updateUI();
-    }
-  }
-  
-  for(let i = enemies.length - 1; i >= 0; i--){
-    const e = enemies[i];
-    e.x += e.vx * dt;
-    e.y += e.vy * dt;
-    
-    // Отскок от стен
-    if(e.x < e.w/2 || e.x > W - e.w/2) e.vx *= -1;
-    
-    // Стрельба
-    e.shootTimer -= dt;
-    if(e.shootTimer <= 0 && e.y > 0 && e.y < H/2){
-      enemyShoot(e);
-      e.shootTimer = 2 + Math.random() * 2;
-    }
-    
-    // Удаление если ушёл за экран
-    if(e.y > H + 50){
-      enemies.splice(i, 1);
-      continue;
-    }
-    
-    // Столкновение с игроком
-    if(player.invincible <= 0 && rectCollision(player, e)){
-      createExplosion(player.x, player.y, '#0ff', 30);
-      createExplosion(e.x, e.y, e.color, 20);
-      enemies.splice(i, 1);
-      lives--;
-      player.invincible = 2;
-      updateUI();
-      if(lives <= 0){
-        gameOver = true;
-      }
-    }
-  }
-  
-  // Коллизии пуль с врагами
-  for(let i = bullets.length - 1; i >= 0; i--){
-    const b = bullets[i];
-    if(!b.friendly) continue;
-    
-    for(let j = enemies.length - 1; j >= 0; j--){
-      const e = enemies[j];
-      if(rectCollision(b, e)){
-        e.hp--;
-        bullets.splice(i, 1);
-        
-        if(e.hp <= 0){
-          createExplosion(e.x, e.y, e.color, 25);
-          score += e.points;
-          spawnPowerup(e.x, e.y);
-          enemies.splice(j, 1);
-          updateUI();
-        } else {
-          createExplosion(b.x, b.y, '#fff', 5);
-        }
-        break;
-      }
-    }
-  }
-  
-  // Коллизии вражеских пуль с игроком
-  if(player.invincible <= 0){
-    for(let i = bullets.length - 1; i >= 0; i--){
-      const b = bullets[i];
-      if(b.friendly) continue;
-      
-      if(rectCollision(b, player)){
-        createExplosion(player.x, player.y, '#0ff', 20);
-        bullets.splice(i, 1);
-        lives--;
-        player.invincible = 2;
-        updateUI();
-        if(lives <= 0){
-          gameOver = true;
-        }
-        break;
-      }
-    }
-  }
-  
-  // Бонусы
-  for(let i = powerups.length - 1; i >= 0; i--){
-    const p = powerups[i];
-    p.y += p.vy * dt;
-    p.rotation += dt * 2;
-    
-    if(p.y > H + 20){
-      powerups.splice(i, 1);
-      continue;
-    }
-    
-    if(rectCollision(p, player)){
-      if(p.type === 'power'){
-        player.power = Math.min(3, player.power + 1);
-      } else if(p.type === 'life'){
-        lives = Math.min(5, lives + 1);
-      }
-      createExplosion(p.x, p.y, '#0f0', 15);
-      powerups.splice(i, 1);
-      updateUI();
-    }
-  }
-  
-  // Частицы
-  for(let i = particles.length - 1; i >= 0; i--){
-    const p = particles[i];
-    p.x += p.vx * dt;
-    p.y += p.vy * dt;
-    p.life -= p.decay * dt;
-    
-    if(p.life <= 0){
-      particles.splice(i, 1);
-    }
-  }
+function heatPass(){
+ for(let i=0;i<N;i++){
+  if(!aw[cix[i]])continue;
+  const t=tp[i],a=P_alpha[t],ti=T[i];let s=0;
+  if(i>=W){const u=tp[i-W],c=P_alpha[u];s+=(a<c?a:c)*(T[i-W]-ti);}
+  if(i<N-W){const u=tp[i+W],c=P_alpha[u];s+=(a<c?a:c)*(T[i+W]-ti);}
+  const x=i%W;
+  if(x>0){const u=tp[i-1],c=P_alpha[u];s+=(a<c?a:c)*(T[i-1]-ti);}
+  if(x<W-1){const u=tp[i+1],c=P_alpha[u];s+=(a<c?a:c)*(T[i+1]-ti);}
+  let nt=ti+s;
+  nt+=(AMB-nt)*((t===0||P_ph[t]===5)?.006:.0015);
+  if(nt>600){const r=(nt-AMB)/1000;nt-=r*r*r*.8;}
+  if(nt<-273)nt=-273;
+  T[i]=nt;
+  if(Math.abs(nt-AMB)>.5||Math.abs(s)>.02)wake(i);
+  if(t)phase(i,t);
+ }
 }
-
-// Отрисовка
-function draw(){
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, W, H);
-  
-  // Звёзды
-  ctx.fillStyle = '#fff';
-  for(const star of stars){
-    ctx.globalAlpha = star.size / 2.5;
-    ctx.fillRect(star.x, star.y, star.size, star.size);
-  }
-  ctx.globalAlpha = 1;
-  
-  // Игрок
-  if(!gameOver){
-    ctx.save();
-    ctx.translate(player.x, player.y);
-    
-    if(player.invincible > 0){
-      ctx.globalAlpha = 0.5 + Math.sin(player.invincible * 10) * 0.5;
-    }
-    
-    // Корабль
-    ctx.fillStyle = '#0ff';
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = '#0ff';
-    ctx.beginPath();
-    ctx.moveTo(0, -20);
-    ctx.lineTo(-15, 15);
-    ctx.lineTo(0, 5);
-    ctx.lineTo(15, 15);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Двигатель
-    ctx.fillStyle = '#ff0';
-    ctx.shadowColor = '#ff0';
-    ctx.fillRect(-5, 15, 10, 5 + Math.random() * 5);
-    
-    ctx.restore();
-  }
-  
-  // Враги
-  for(const e of enemies){
-    ctx.save();
-    ctx.translate(e.x, e.y);
-    ctx.fillStyle = e.color;
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = e.color;
-    
-    if(e.w > 35){ // Танк
-      ctx.fillRect(-e.w/2, -e.h/2, e.w, e.h);
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(-e.w/2 + 5, -e.h/2 + 5, e.w - 10, 5);
-    } else { // Обычный/быстрый
-      ctx.beginPath();
-      ctx.moveTo(0, e.h/2);
-      ctx.lineTo(-e.w/2, -e.h/2);
-      ctx.lineTo(e.w/2, -e.h/2);
-      ctx.closePath();
-      ctx.fill();
-    }
-    
-    // Полоска HP для танков
-    if(e.maxHp){
-      ctx.fillStyle = '#0f0';
-      ctx.fillRect(-e.w/2, -e.h/2 - 8, e.w * (e.hp / e.maxHp), 3);
-    }
-    
-    ctx.restore();
-  }
-  
-  // Пули
-  for(const b of bullets){
-    ctx.fillStyle = b.color;
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = b.color;
-    ctx.fillRect(b.x - b.w/2, b.y - b.h/2, b.w, b.h);
-  }
-  
-  // Бонусы
-  for(const p of powerups){
-    ctx.save();
-    ctx.translate(p.x, p.y);
-    ctx.rotate(p.rotation);
-    
-    ctx.fillStyle = p.type === 'power' ? '#0ff' : '#f00';
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = ctx.fillStyle;
-    ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
-    
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 12px monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(p.type === 'power' ? 'P' : '♥', 0, 0);
-    
-    ctx.restore();
-  }
-  
-  // Частицы
-  for(const p of particles){
-    ctx.fillStyle = p.color;
-    ctx.globalAlpha = p.life;
-    ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
-  }
-  ctx.globalAlpha = 1;
-  
-  // Game Over
-  if(gameOver){
-    ctx.fillStyle = 'rgba(0,0,0,0.7)';
-    ctx.fillRect(0, 0, W, H);
-    
-    ctx.fillStyle = '#f00';
-    ctx.font = 'bold 48px monospace';
-    ctx.textAlign = 'center';
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = '#f00';
-    ctx.fillText('GAME OVER', W/2, H/2 - 30);
-    
-    ctx.fillStyle = '#fff';
-    ctx.font = '24px monospace';
-    ctx.shadowColor = '#fff';
-    ctx.fillText('СЧЁТ: ' + score, W/2, H/2 + 20);
-    ctx.fillText('ВОЛНА: ' + wave, W/2, H/2 + 50);
-    
-    ctx.fillStyle = '#0ff';
-    ctx.font = '18px monospace';
-    ctx.shadowColor = '#0ff';
-    ctx.fillText('Нажми R для рестарта', W/2, H/2 + 100);
-  }
-  
-  ctx.shadowBlur = 0;
+function elecPass(){
+ for(let i=0;i<N;i++){
+  if(!aw[cix[i]])continue;
+  const qi=q[i];if(qi<2){if(qi)q[i]=0;continue;}
+  const t=tp[i];
+  if(!t){if(qi>150){set(i,ID.lt);q[i]=255;}else q[i]=qi*.7;continue;}
+  const ec=P_ec[t];
+  if(ec<=0){q[i]=qi*.9;continue;}
+  let moved=0;const x=i%W;
+  for(let k=0;k<4;k++){
+   let j=-1;
+   if(k===0&&i>=W)j=i-W;else if(k===1&&i<N-W)j=i+W;
+   else if(k===2&&x>0)j=i-1;else if(k===3&&x<W-1)j=i+1;
+   if(j<0)continue;
+   const c2=P_ec[tp[j]];if(c2<=0)continue;
+   const d=(qi-q[j])*.25*Math.min(ec,c2);
+   if(d>.5){q[j]+=d;moved+=d;T[j]+=d*d*.0006*(1-c2);wake(j);}}
+  q[i]=Math.max(0,qi-moved)*.97;
+  T[i]+=moved*moved*.0004*(1-ec);
+  if(P_aq[t]&&qi>60&&Math.random()<.05){
+   const j=nb(i,x,i/W|0,(Math.random()*4)|0);set(i,ID.hy);if(j>=0&&tp[j]===0)set(j,ID.ox);}
+  wake(i);
+ }
 }
-
-// Игровой цикл
-let last = performance.now();
+function lightPass(){
+ lum.fill(0);let b=1400;
+ for(let i=0;i<N;i++){
+  const t=tp[i];if(!t)continue;
+  const g=P_glow[t];if(!g)continue;
+  if(P_sp[t]===SP.lamp&&q[i]<8)continue;
+  if(--b<0)break;
+  const r=2+(g>>6),K=KERN[r>6?6:r],x=i%W,y=i/W|0;
+  if(P_sp[t])aw[cix[i]]=AW;
+  for(let k=0;k<K.n;k++){
+   const nx=x+K.dx[k],ny=y+K.dy[k];if(nx<0||nx>=W||ny<0||ny>=H)continue;
+   const j=ny*W+nx,v=(g*K.f[k])>>8;
+   if(v>lum[j]){lum[j]=v;if(P_grow[tp[j]])aw[cix[j]]=AW;}}
+ }
+}
+let nParts=0,avgT=20,nActive=0;
+function stat(){
+ if(frame%15)return;
+ let n=0,s=0;for(let i=0;i<N;i++){if(tp[i])n++;s+=T[i];}
+ let a=0;for(let c=0;c<NC;c++)if(aw[c])a++;
+ nParts=n;avgT=s/N;nActive=a/NC;
+ if(audio.on)audio.mix(n/N);
+}
+function step(){
+ frame++;mv.fill(0);budget=45000;
+ lightPass();
+ const rev=(frame&1)===0;
+ for(let y=H-1;y>=0;y--){const row=y*W;
+  if(rev){for(let x=W-1;x>=0;x--)upd(row+x,x,y);}
+  else{for(let x=0;x<W;x++)upd(row+x,x,y);}}
+ heatPass();elecPass();
+ for(let c=0;c<NC;c++)if(aw[c])aw[c]--;
+ stat();
+}
+/* ---------- рендер ---------- */
+function lit(c,l){const a=l*.5;let r=(c&255)+a,g=((c>>8)&255)+a,b=((c>>16)&255)+a;
+ if(r>255)r=255;if(g>255)g=255;if(b>255)b=255;return(255<<24)|((b|0)<<16)|((g|0)<<8)|(r|0);}
+function hot(c,tt){let f=(tt-350)/1000;if(f>1)f=1;
+ const r=c&255,g=(c>>8)&255,b=(c>>16)&255;
+ return(255<<24)|(((b*(1-f*.85))|0)<<16)|(((g+(180-g)*f*.9)|0)<<8)|((r+(255-r)*f)|0);}
+function render(){
+ if(thermal){
+  for(let i=0;i<N;i++){let v=((T[i]+60)*.15)|0;if(v<0)v=0;if(v>255)v=255;px[i]=TLUT[v];}
+ }else{
+  for(let i=0;i<N;i++){
+   const t=tp[i];let c;
+   if(!t)c=bg[i];
+   else{c=PAL[(t<<2)|noise[i]];const tt=T[i];
+    if(tt>350&&P_ph[t]!==5)c=hot(c,tt);
+    else if(tt<-8){const r=c&255,g=(c>>8)&255,b=(c>>16)&255;
+     c=(255<<24)|(((b+(255-b)*.25)|0)<<16)|(((g+(235-g)*.2)|0)<<8)|((r+(205-r)*.2)|0);}}
+   const l=lum[i];if(l)c=lit(c,l);
+   px[i]=c;}
+ }
+ ctx.putImageData(img,0,0);
+}
+/* ---------- главный цикл: фиксированный шаг ---------- */
+let acc=0,last=performance.now(),ms=0,fps=60,fAcc=0,fCnt=0;
 function loop(now){
-  const dt = Math.min((now - last) / 1000, 0.05);
-  last = now;
-  
-  update(dt);
-  draw();
-  
-  requestAnimationFrame(loop);
+ const dt=Math.min(120,now-last);last=now;
+ fAcc+=dt;fCnt++;if(fAcc>500){fps=1000/(fAcc/fCnt);fAcc=0;fCnt=0;}
+ const t0=performance.now();
+ if(!paused){acc+=dt*SPEED;let n=0;
+  while(acc>=16.6667&&n<3){step();acc-=16.6667;n++;}
+  if(acc>60)acc=0;}
+ if(ptr.down&&tool>=2)paintAt(ptr.gx,ptr.gy);
+ render();
+ ms=ms*.9+(performance.now()-t0)*.1;
+ if(palDirty){buildPalette();palDirty=false;}
+ hud.textContent='fps '+fps.toFixed(0)+'   кадр '+ms.toFixed(1)+' мс\nчастиц '+nParts+'   активных чанков '+(nActive*100|0)+'%\nT сред '+avgT.toFixed(1)+'°C   шаг '+(frame%100000);
+ requestAnimationFrame(loop);
 }
-
-updateUI();
+/* ============================================================
+   4. ВВОД
+   ============================================================ */
+const ptr={down:false,gx:0,gy:0,px:0,py:0};
+function toGrid(e){const r=cv.getBoundingClientRect();
+ return[Math.max(0,Math.min(W-1,((e.clientX-r.left)/r.width*W)|0)),Math.max(0,Math.min(H-1,((e.clientY-r.top)/r.height*H)|0))];}
+function paintAt(gx,gy){
+ const r=brush,t=sel;
+ for(let dy=-r;dy<=r;dy++){const ny=gy+dy;if(ny<0||ny>=H)continue;
+  for(let dx=-r;dx<=r;dx++){const nx=gx+dx;if(nx<0||nx>=W)continue;
+   if(dx*dx+dy*dy>r*r)continue;const i=ny*W+nx;
+   if(tool===0){const ph=P_ph[t];if(ph===8)continue;
+    const fill=ph===1?1:(ph===5||ph===6?.35:.75);
+    if(Math.random()<fill&&(tp[i]===0||ph===1)){set(i,t);if(t===ID.las||t===ID.light)res[i]=2;}}
+   else if(tool===1){if(tp[i])set(i,0);T[i]=AMB;q[i]=0;enth[i]=0;wake(i);}
+   else if(tool===2){T[i]=Math.min(20000,T[i]+45);wake(i);}
+   else if(tool===3){T[i]=Math.max(-273,T[i]-45);wake(i);}
+   else if(tool===4){q[i]=255;wake(i);}
+   else if(tool===5){const d=Math.sqrt(dx*dx+dy*dy)+.6;
+    vx[i]=Math.max(-7,Math.min(7,vx[i]+Math.round(dx/d*5)));
+    vy[i]=Math.max(-7,Math.min(7,vy[i]+Math.round(dy/d*5)));wake(i);}}}
+}
+function line(x0,y0,x1,y1){
+ const dx=Math.abs(x1-x0),dy=Math.abs(y1-y0),n=Math.max(dx,dy);
+ if(n===0){paintAt(x1,y1);return;}
+ for(let s=0;s<=n;s++)paintAt(Math.round(x0+(x1-x0)*s/n),Math.round(y0+(y1-y0)*s/n));
+}
+function moveCur(e){
+ const r=cv.getBoundingClientRect(),s=r.width/W;
+ cur.style.left=(e.clientX-r.left+box.offsetLeft-box.offsetLeft)+'px';
+ cur.style.top=(e.clientY-r.top)+'px';
+ cur.style.width=cur.style.height=(brush*2*s)+'px';
+ cur.style.left=(e.clientX-r.left)+'px';
+}
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);const[a,b]=toGrid(e);
+ ptr.down=true;ptr.gx=a;ptr.gy=b;ptr.px=a;ptr.py=b;paintAt(a,b);moveCur(e);audio.start();});
+cv.addEventListener('pointermove',e=>{const[a,b]=toGrid(e);moveCur(e);
+ if(ptr.down){line(ptr.px,ptr.py,a,b);ptr.px=a;ptr.py=b;}ptr.gx=a;ptr.gy=b;});
+cv.addEventListener('pointerup',()=>{ptr.down=false;});
+cv.addEventListener('pointerleave',()=>{ptr.down=false;cur.style.opacity=0;});
+cv.addEventListener('pointerenter',()=>{cur.style.opacity=.8;});
+cv.addEventListener('dragover',e=>e.preventDefault());
+cv.addEventListener('drop',e=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain');
+ if(ID[id]){sel=ID[id];tool=0;syncTools();const[a,b]=toGrid(e);paintAt(a,b);palDirty=true;}});
+addEventListener('keydown',e=>{
+ if(e.target.tagName==='INPUT')return;
+ const k=e.key.toLowerCase();
+ if(k===' '){e.preventDefault();togglePause();}
+ else if(k==='['){brush=Math.max(1,brush-1);rBrush.value=brush;vBrush.textContent=brush;}
+ else if(k===']'){brush=Math.min(16,brush+1);rBrush.value=brush;vBrush.textContent=brush;}
+ else if(k>='1'&&k<='6'){tool=+k-1;syncTools();}
+ else if(k==='t'){toggleTherm();}
+ else if(k==='h'){hint();}
+ else if(k==='c'){openModal('el');}
+ else if(k==='escape'){modal.classList.remove('open');}
+});
+/* ============================================================
+   5. ИНТЕРФЕЙС
+   ============================================================ */
+const $=id=>document.getElementById(id);
+const hud=$('hud'),pal=$('pal'),modal=$('modal'),mbody=$('mbody'),cnt=$('cnt'),pg=$('pg');
+const TOOLS=[['🖌','Кисть'],['🧽','Ластик'],['🔥','Нагрев'],['❄','Охлаждение'],['⚡','Искра'],['💥','Толчок']];
+const toolsBox=$('tools');
+TOOLS.forEach((t,i)=>{const b=document.createElement('button');b.className='mini';b.textContent=t[0]+' '+t[1];
+ b.onclick=()=>{tool=i;syncTools();};toolsBox.appendChild(b);});
+function syncTools(){[...toolsBox.children].forEach((b,i)=>b.classList.toggle('on',i===tool));
+ const e=EL[sel];$('bPause').classList.toggle('on',paused);}
+function unlock(t){
+ if(disc[t])return;disc[t]=1;newFound++;palDirty=true;
+ toast('✦ Открыто: '+EL[t].emo+' '+EL[t].name);audio.bell();saveDisc();
+}
+function toast(s){const d=document.createElement('div');d.className='tst';d.textContent=s;
+ $('toast').appendChild(d);setTimeout(()=>d.remove(),3200);
+ while($('toast').children.length>4)$('toast').firstChild.remove();}
+function chip(e){
+ const d=document.createElement('div');
+ d.className='chip'+(disc[e.idx]?'':' lock')+(e.idx===sel?' on':'')+(e.ph===8?' idea':'');
+ d.draggable=!!disc[e.idx];
+ d.innerHTML='<b>'+e.emo+'</b><i>'+(disc[e.idx]?e.name:'???')+'</i>';
+ d.title=disc[e.idx]?e.name+' — '+PHNAME[e.ph]:'ещё не открыто';
+ if(disc[e.idx]){
+  const u=document.createElement('u');u.textContent='⚗';u.title='в алтарь синтеза';
+  u.onclick=ev=>{ev.stopPropagation();addSlot(e.idx);};d.appendChild(u);
+  d.onclick=()=>{if(e.ph===8){addSlot(e.idx);}else{sel=e.idx;tool=0;syncTools();palDirty=true;}};
+  d.addEventListener('dragstart',ev=>ev.dataTransfer.setData('text/plain',e.id));
+ }
+ return d;
+}
+function buildPalette(){
+ const q=($('q').value||'').toLowerCase();pal.innerHTML='';let shown=0,found=0;
+ for(let i=1;i<M;i++)if(disc[i])found++;
+ for(const g of GRP){
+  const items=EL.filter(e=>e.grp===g.code&&e.idx>0&&(disc[e.idx]||showAll)&&(!q||e.name.toLowerCase().indexOf(q)>=0));
+  if(!items.length)continue;
+  const h=document.createElement('div');h.className='gh';h.textContent=g.name;pal.appendChild(h);
+  const grid=document.createElement('div');grid.className='chips';
+  items.forEach(e=>{grid.appendChild(chip(e));shown++;});
+  pal.appendChild(grid);}
+ cnt.textContent='Открыто '+found+' из '+TOTAL+' · рецептов '+RL.length+' · в мире можно рисовать '+EL.filter(e=>e.ph!==8&&e.idx>0).length;
+ pg.style.width=(found/TOTAL*100).toFixed(1)+'%';
+}
+function slotEl(el,i){
+ if(i){el.classList.add('f');el.innerHTML='<b>'+EL[i].emo+'</b><span>'+EL[i].name+'</span>';}
+ else{el.classList.remove('f');el.innerHTML='<b>+</b><span>элемент</span>';}
+}
+function addSlot(i){
+ if(!slotA)slotA=i;else if(!slotB)slotB=i;else{slotA=slotB;slotB=i;}
+ slotEl($('sA'),slotA);slotEl($('sB'),slotB);combine();
+}
+function combine(){
+ if(!slotA||!slotB)return;
+ const k=slotA<slotB?slotA*1024+slotB:slotB*1024+slotA,r=RM.get(k);
+ const R=$('sR');
+ if(r){const was=disc[r];unlock(r);
+  R.innerHTML='<b>'+EL[r].emo+'</b><span>'+EL[r].name+'</span>';
+  if(!was)toast('🌟 '+EL[slotA].name+' + '+EL[slotB].name+' = '+EL[r].name);
+  if(EL[r].ph!==8){sel=r;tool=0;syncTools();palDirty=true;}
+ }else{R.innerHTML='<b>∅</b><span>ничего</span>';toast('Ничего не вышло. Попробуй другую пару.');}
+}
+$('sA').onclick=()=>{slotA=0;slotEl($('sA'),0);$('sR').innerHTML='<b>?</b><span>итог</span>';};
+$('sB').onclick=()=>{slotB=0;slotEl($('sB'),0);$('sR').innerHTML='<b>?</b><span>итог</span>';};
+['sA','sB'].forEach((id,k)=>{const el=$(id);
+ el.addEventListener('dragover',e=>e.preventDefault());
+ el.addEventListener('drop',e=>{e.preventDefault();const i=ID[e.dataTransfer.getData('text/plain')];
+  if(i){if(k===0)slotA=i;else slotB=i;slotEl($('sA'),slotA);slotEl($('sB'),slotB);combine();}});});
+$('bClr').onclick=()=>{slotA=slotB=0;slotEl($('sA'),0);slotEl($('sB'),0);$('sR').innerHTML='<b>?</b><span>итог</span>';};
+$('bAll').onclick=e=>{showAll=!showAll;e.target.classList.toggle('on',showAll);palDirty=true;};
+$('q').oninput=()=>{palDirty=true;};
+function hint(){
+ const c=[];for(const[a,b,r]of RL)if(disc[a]&&disc[b]&&!disc[r])c.push([a,b,r]);
+ if(!c.length){toast('Все доступные комбинации уже открыты. Ищи новые пары среди открытого.');return;}
+ const p=c[(Math.random()*c.length)|0];
+ toast('Подсказка: '+EL[p[0]].emo+' '+EL[p[0]].name+' + '+EL[p[1]].emo+' '+EL[p[1]].name);
+}
+$('bHint').onclick=hint;
+function togglePause(){paused=!paused;$('bPause').classList.toggle('on',paused);$('bPause').textContent=paused?'▶ Продолжить':'⏸ Пауза';}
+function toggleTherm(){thermal=!thermal;$('bTherm').classList.toggle('on',thermal);}
+$('bPause').onclick=togglePause;$('bTherm').onclick=toggleTherm;
+$('bSide').onclick=()=>$('side').classList.toggle('hide');
+const rBrush=$('rBrush'),vBrush=$('vBrush');
+rBrush.oninput=()=>{brush=+rBrush.value;vBrush.textContent=brush;};
+$('rG').oninput=e=>{GRAV=+e.target.value/10;GACC=.136*GRAV;$('vG').textContent=GRAV.toFixed(1);
+ for(let c=0;c<NC;c++)aw[c]=AW;};
+$('rT').oninput=e=>{AMB=+e.target.value;$('vT').textContent=AMB;for(let c=0;c<NC;c++)aw[c]=AW;};
+$('rW').oninput=e=>{WIND=+e.target.value/10;$('vW').textContent=WIND.toFixed(1);for(let c=0;c<NC;c++)aw[c]=AW;};
+$('rS').oninput=e=>{SPEED=+e.target.value/10;$('vS').textContent=SPEED.toFixed(1);};
+/* --- сцены --- */
+function clearWorld(){tp.fill(0);lf.fill(0);vx.fill(0);vy.fill(0);q.fill(0);enth.fill(0);res.fill(0);
+ for(let i=0;i<N;i++)T[i]=AMB;for(let c=0;c<NC;c++)aw[c]=AW;}
+function fillRect(x0,y0,x1,y1,t,tt){for(let y=Math.max(0,y0);y<Math.min(H,y1);y++)for(let x=Math.max(0,x0);x<Math.min(W,x1);x++)set(y*W+x,t,tt);}
+function scene(name){
+ clearWorld();const g=H-14;
+ if(name==='empty')return;
+ if(name==='lake'){fillRect(0,g,W,H,ID.sa);fillRect(W*.25|0,g-16,W*.75|0,g,ID.wa);
+  fillRect(0,g-3,W*.25|0,g,ID.soil);fillRect(W*.75|0,g-3,W,g,ID.soil);
+  fillRect(W*.1|0,g-6,W*.16|0,g-3,ID.ro);}
+ if(name==='volcano'){fillRect(0,g,W,H,ID.ro);
+  for(let y=0;y<26;y++){const w=30-y;fillRect((W/2-w)|0,g-y,(W/2+w)|0,g-y+1,ID.ro);}
+  fillRect((W/2-3)|0,g-26,(W/2+3)|0,g-20,ID.la,1250);set((g-27)*W+(W/2|0),ID.vol);}
+ if(name==='garden'){fillRect(0,g,W,H,ID.soil);fillRect(0,g-2,W,g,ID.gr);
+  for(let x=10;x<W;x+=34){set((g-3)*W+x,ID.seed);}
+  fillRect(W*.6|0,g-8,W*.8|0,g,ID.wa);set(20*W+(W*.3|0),ID.sun);}
+ if(name==='space'){fillRect(0,0,W,H,ID.vac);set((H/2|0)*W+(W/2|0),ID.star);
+  for(let k=0;k<160;k++){const x=Math.random()*W|0,y=Math.random()*H|0;set(y*W+x,ID.hy);}
+  set((H*.2|0)*W+(W*.8|0),ID.bh);}
+ if(name==='storm'){fillRect(0,g,W,H,ID.soil);fillRect(W*.2|0,g-10,W*.8|0,g,ID.sea);
+  fillRect(0,6,W,16,ID.cld);fillRect(W*.3|0,16,W*.7|0,20,ID.sto);}
+}
+$('selScene').onchange=e=>{if(e.target.value){scene(e.target.value);e.target.value='';}};
+$('selQ').onchange=e=>{const s=SIZES[+e.target.value];alloc(s[0],s[1]);scene('lake');};
+/* --- сохранение --- */
+const KEY='alchemia_physica_v1';
+function saveDisc(){try{const a=[];for(let i=1;i<M;i++)if(disc[i])a.push(EL[i].id);
+ localStorage.setItem(KEY+'_d',JSON.stringify(a));}catch(e){}}
+function loadDisc(){try{const a=JSON.parse(localStorage.getItem(KEY+'_d')||'null');
+ if(a&&a.length){a.forEach(id=>{if(ID[id])disc[ID[id]]=1;});return true;}}catch(e){}return false;}
+$('bSave').onclick=()=>{try{
+ const a=[];let run=1,prev=tp[0];
+ for(let i=1;i<N;i++){if(tp[i]===prev&&run<65000)run++;else{a.push(prev,run);prev=tp[i];run=1;}}
+ a.push(prev,run);
+ localStorage.setItem(KEY+'_w',JSON.stringify({W:W,H:H,d:a}));toast('Мир сохранён ('+a.length/2+' блоков)');
+}catch(e){toast('Не удалось сохранить: хранилище недоступно');}};
+$('bLoad').onclick=()=>{try{
+ const o=JSON.parse(localStorage.getItem(KEY+'_w')||'null');if(!o){toast('Сохранённого мира нет');return;}
+ if(o.W!==W||o.H!==H){alloc(o.W,o.H);$('selQ').value=SIZES.findIndex(s=>s[0]===o.W);}
+ clearWorld();let i=0;
+ for(let k=0;k<o.d.length;k+=2){const t=o.d[k],n=o.d[k+1];
+  for(let s=0;s<n&&i<N;s++,i++)if(t){tp[i]=t;lf[i]=P_life[t];T[i]=P_t0[t]||AMB;}}
+ for(let c=0;c<NC;c++)aw[c]=AW;toast('Мир загружен');
+}catch(e){toast('Файл сохранения повреждён');}};
+$('bReset').onclick=()=>{if(!confirm('Сбросить все открытия? Мир останется.'))return;
+ disc.fill(0);['wa','ea','fi','ai'].forEach(id=>disc[ID[id]]=1);newFound=0;palDirty=true;saveDisc();toast('Прогресс сброшен');};
+/* --- книга / законы / о проекте --- */
+function propList(i){
+ const e=EL[i],p=e.p,out=[];
+ if(e.ph===8)return['идея — существует только в Книге и в синтезе'];
+ out.push('фаза: '+PHNAME[e.ph]);
+ if(p.rho)out.push('ρ = '+p.rho+' кг/м³');
+ if(p.tm!==undefined)out.push('Tпл/замерз = '+p.tm+' °C');
+ if(p.tb!==undefined)out.push('Tкип = '+p.tb+' °C');
+ if(p.k!==undefined)out.push('k = '+p.k+' Вт/(м·К)');
+ if(p.cp)out.push('c = '+p.cp+' кДж/(кг·К)');
+ if(p.visc)out.push('η = '+p.visc);
+ if(p.ec)out.push('σ = '+p.ec);
+ if(p.ign)out.push('Tвоспл = '+p.ign+' °C');
+ if(p.fuel)out.push('q = '+p.fuel+' (теплота сгорания)');
+ if(p.glow)out.push('свет = '+p.glow);
+ if(p.life)out.push('живёт '+p.life+' шагов');
+ if(p.mag)out.push('ферромагнетик');
+ if(p.rad)out.push('радиоактивен');
+ if(p.expl)out.push('взрывчатка ×'+p.expl);
+ if(p.acid)out.push('кислота');
+ if(p.sol)out.push('растворим');
+ if(p.sp)out.push('поведение: '+p.sp);
+ return out;
+}
+function paths(i){const a=[];for(const[x,y,r]of RL)if(r===i)a.push(EL[x].name+' + '+EL[y].name);return a;}
+function uses(i){let n=0;for(const[x,y]of RL)if(x===i||y===i)n++;return n;}
+function openModal(tab){
+ modal.classList.add('open');
+ [...modal.querySelectorAll('.tabs button[data-tab]')].forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+ let h='';
+ if(tab==='el'){
+  h+='<p class="dim">Открытые элементы. Нажми ⚗ на карточке в панели, чтобы положить элемент в алтарь. Идеи (💭) нельзя рисовать — они живут только в синтезе.</p><div class="grid2">';
+  for(let i=1;i<M;i++){if(!disc[i])continue;const e=EL[i],pp=paths(i);
+   h+='<div class="card"><h4>'+e.emo+' '+e.name+' <span class="dim">'+e.id+'</span></h4><p class="mono">'+propList(i).join(' · ')+'</p>'+
+   (pp.length?'<p class="dim">Получается: '+pp.slice(0,6).join(' ; ')+(pp.length>6?' …':'')+'</p>':'')+
+   '<p class="dim">Участвует в '+uses(i)+' рецептах</p></div>';}
+  h+='</div>';
+ }else if(tab==='rx'){
+  let known=0;h+='<p class="dim">Всего в базе '+RL.length+' рецептов. Ниже — те, у которых оба компонента уже открыты.</p><div class="grid2">';
+  for(const[a,b,r]of RL){if(!disc[a]||!disc[b])continue;known++;
+   h+='<div class="card"><p>'+EL[a].emo+' '+EL[a].name+' + '+EL[b].emo+' '+EL[b].name+' → <b style="color:var(--acc)">'+(disc[r]?EL[r].emo+' '+EL[r].name:'???')+'</b></p></div>';}
+  h+='</div><p class="dim">Доступно сейчас: '+known+' из '+RL.length+'</p>';
+  h+='<h4 style="margin-top:16px">Контактные реакции в мире (физика)</h4><div class="card"><p class="mono">вода+огонь→пар · лава+вода→камень+пар · соль+вода→море · соль+лёд→таяние · зола+вода→щёлочь · кислота+щёлочь→соль+вода · кислота+металл→водород · щёлочь+нефть→мыло · CO₂+растение+свет→кислород · железо+кислород→ржавчина · ржавчина+огонь→железо · песок+молния→стекло · глина+огонь→кирпич · дым+вода→чернила · вода+CO₂→кислота · сахар+бактерия→спирт · пчела+цветок→мёд · нейтрон+уран→деление · звезда+водород→гелий · заряженная вода→водород+кислород · яд/радиация+жизнь→гибель · лекарство+вирус→исцеление · удобрение+растение→рост</p></div>';
+ }else if(tab==='law'){
+  h+='<p class="dim">Дискретная модель: клетка ≈ 2 см, шаг 1/60 с, фиксированный таймстеп. Законы решаются в явной устойчивой схеме; сохранение массы и энергии — приблизительное (клеточный автомат, а не CFD).</p>';
+  LAWS.forEach((l,i)=>{h+='<div class="card"><h4>'+(i+1)+'. '+l[0]+'</h4><p class="mono">'+l[1]+'</p><p>'+l[2]+'</p></div>';});
+ }else{
+  h+='<div class="card"><h4>ALCHEMIA · PHYSICA</h4><p>Медитативная песочница: '+TOTAL+' элементов, '+RL.length+' жёстко прописанных рецептов синтеза и физический мир, где вещества живут по '+LAWS.length+' законам. Здесь нет очков, таймеров и проигрыша — только исследование.</p>'+
+  '<p>Путь: Вода + Земля → Растение → … → Жизнь → Разум → Душа → <b>Бог</b>. Бога можно нарисовать в мире: он светит, упорядочивает хаос и рождает жизнь.</p></div>'+
+  '<div class="card"><h4>Связь с автором</h4><p>Идеи, баги, новые элементы и рецепты присылай сюда:</p><p style="font-size:16px">✉ <a href="mailto:rutlyyoutube@gmail.com?subject=ALCHEMIA%20%C2%B7%20PHYSICA">rutlyyoutube@gmail.com</a></p></div>'+
+  '<div class="card"><h4>Управление</h4><p class="mono">ЛКМ — рисовать · перетаскивание элемента на холст — рисовать им<br>клик по элементу — выбрать кисть · ⚗ — в алтарь синтеза · перетаскивание в слот — тоже работает<br>Пробел — пауза · [ ] — размер кисти · 1…6 — инструменты · T — тепловизор · H — подсказка · C — книга</p>'+
+  '<p>Инструменты: кисть, ластик, нагрев, охлаждение, искра (заряд), толчок (импульс). Слайдеры: g, температура среды, ветер, скорость времени.</p></div>'+
+  '<div class="card"><h4>Что честно упрощено</h4><p>Это клеточный автомат, а не решатель Навье–Стокса: жидкости выравниваются растеканием, а не полем давления; твёрдые структуры закреплены в мире; теплообмен ускорен относительно реального, чтобы процессы были видны за секунды. Формулы, плотности, теплоёмкости и точки переходов взяты настоящие, схема устойчива (Σα ≤ 0.18 &lt; 0.5).</p></div>'+
+  '<div class="card"><h4>Производительность</h4><p>Типизированные массивы, спящие чанки 16×16, стохастическая выборка одного соседа для реакций, бюджет тяжёлых скриптов, целочисленные ядра света, прямая запись пикселей в Uint32-буфер, ноль аллокаций в кадре, фиксированный шаг с накопителем.</p></div>';
+ }
+ mbody.innerHTML=h;mbody.scrollTop=0;
+}
+$('bBook').onclick=()=>openModal('el');$('bLaws').onclick=()=>openModal('law');$('bAbout').onclick=()=>openModal('about');
+$('bClose').onclick=()=>modal.classList.remove('open');
+modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('open');});
+modal.querySelectorAll('.tabs button[data-tab]').forEach(b=>b.onclick=()=>openModal(b.dataset.tab));
+/* ============================================================
+   6. ПРОЦЕДУРНЫЙ ЗВУК (медитативный дрон + колокольчики)
+   ============================================================ */
+const audio={ctx:null,on:false,noise:null,ng:null,
+ start(){if(this.ctx||!this.on)return;this.init();},
+ init(){try{
+  const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+  const c=new C();this.ctx=c;
+  const g=c.createGain();g.gain.value=.055;g.connect(c.destination);this.master=g;
+  const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=420;lp.Q.value=.6;lp.connect(g);
+  [55,82.5,110.3].forEach((f,i)=>{const o=c.createOscillator();o.type=i===2?'triangle':'sine';o.frequency.value=f;
+   const og=c.createGain();og.gain.value=.5;o.connect(og);og.connect(lp);o.start();
+   const l=c.createOscillator();l.frequency.value=.03+i*.017;const lg=c.createGain();lg.gain.value=.3;
+   l.connect(lg);lg.connect(og.gain);l.start();});
+  const n=c.createBufferSource(),buf=c.createBuffer(1,c.sampleRate*2,c.sampleRate),d=buf.getChannelData(0);
+  let v=0;for(let i=0;i<d.length;i++){v=(v+(Math.random()*2-1)*.08)*.96;d[i]=v;}
+  n.buffer=buf;n.loop=true;const nf=c.createBiquadFilter();nf.type='bandpass';nf.frequency.value=700;nf.Q.value=.4;
+  const ng=c.createGain();ng.gain.value=0;n.connect(nf);nf.connect(ng);ng.connect(g);n.start();this.ng=ng;
+ }catch(e){}},
+ mix(d){if(this.ng)this.ng.gain.value=Math.min(.35,d*.6);},
+ bell(){if(!this.on||!this.ctx)return;const c=this.ctx,t=c.currentTime;
+  const f=[523.25,587.33,698.46,783.99,880][(Math.random()*5)|0];
+  const o=c.createOscillator();o.type='sine';o.frequency.value=f;
+  const g=c.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.16,t+.02);
+  g.gain.exponentialRampToValueAtTime(.0001,t+2.4);o.connect(g);g.connect(this.master);o.start(t);o.stop(t+2.5);},
+ toggle(){this.on=!this.on;if(this.on){this.init();if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();
+   if(this.master)this.master.gain.value=.055;}else if(this.master)this.master.gain.value=0;
+  $('bSnd').textContent=this.on?'🔊 Звук':'🔇 Звук';$('bSnd').classList.toggle('on',this.on);}
+};
+$('bSnd').onclick=()=>audio.toggle();
+/* ============================================================
+   7. СТАРТ
+   ============================================================ */
+buildPal();alloc(SIZES[1][0],SIZES[1][1]);
+if(!loadDisc())['wa','ea','fi','ai'].forEach(id=>disc[ID[id]]=1);
+sel=ID.wa;syncTools();slotEl($('sA'),0);slotEl($('sB'),0);
+scene('lake');buildPalette();
+toast('Вода + Земля = Растение. Начни отсюда.');
 requestAnimationFrame(loop);
 </script>
 </body>
